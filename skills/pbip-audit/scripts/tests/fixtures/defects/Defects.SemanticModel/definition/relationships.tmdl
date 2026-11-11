@@ -1,0 +1,19 @@
+relationship rel_orders_date
+	fromColumn: Orders.OrderDate
+	toColumn: Calendar.Date
+
+relationship rel_orders_ship
+	isActive: false
+	fromColumn: Orders.ShipDate
+	toColumn: Calendar.Date
+
+relationship rel_orders_product
+	crossFilteringBehavior: bothDirections
+	fromColumn: Orders.ProductKey
+	toColumn: Product.ProductKey
+
+relationship rel_product_extra
+	fromCardinality: one
+	toCardinality: one
+	fromColumn: Product.ProductKey
+	toColumn: 'Product Extra'.ProductKey

@@ -1,0 +1,9 @@
+model Model
+	culture: en-US
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+ref table Calendar
+ref table Product
+ref table 'Product Extra'
+ref table Orders

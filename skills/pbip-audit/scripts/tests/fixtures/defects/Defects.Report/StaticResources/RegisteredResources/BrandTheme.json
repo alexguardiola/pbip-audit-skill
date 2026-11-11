@@ -1,0 +1,15 @@
+{
+  "name": "Brand",
+  "dataColors": [
+    "#D62728",
+    "#2CA02C",
+    "#1F77B4",
+    "#FFE600",
+    "#9467BD",
+    "#8C564B",
+    "#17BECF",
+    "#7F7F7F"
+  ],
+  "foreground": "#9A9A9A",
+  "background": "#FFFFFF"
+}

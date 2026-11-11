@@ -1,0 +1,22 @@
+{
+  "thresholds": {
+    "max_visuals": 30,
+    "tab_order_tolerance": 0.9
+  },
+  "disabled_rules": [
+    "MOB-01"
+  ],
+  "severity_overrides": {
+    "MOD-10": "Info"
+  },
+  "naming": {
+    "locales": [
+      "en"
+    ],
+    "extra_default_page_patterns": [
+      "^Scratch$"
+    ]
+  },
+  "domain_rules": "domain-rules.md",
+  "external_usage": "external-usage.txt"
+}

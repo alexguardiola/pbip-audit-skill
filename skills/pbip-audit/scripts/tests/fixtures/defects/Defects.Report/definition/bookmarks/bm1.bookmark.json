@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Old view",
+  "name": "bm1",
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "page1",
+    "sections": {
+      "page1": {
+        "visualContainers": {
+          "card00": {
+            "singleVisual": {
+              "visualType": "card",
+              "objects": {},
+              "query": {
+                "queryState": {
+                  "Values": {
+                    "projections": [
+                      {
+                        "field": {
+                          "Measure": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Entity": "Orders"
+                              }
+                            },
+                            "Property": "Deleted Measure"
+                          }
+                        },
+                        "queryRef": "Orders.Deleted Measure"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

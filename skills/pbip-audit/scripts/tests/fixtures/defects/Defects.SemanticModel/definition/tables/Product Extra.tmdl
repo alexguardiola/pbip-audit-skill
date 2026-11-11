@@ -1,0 +1,12 @@
+table 'Product Extra'
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column Notes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Notes

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "drill",
+  "displayName": "Category Drill",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "visibility": "HiddenInViewMode",
+  "pageBinding": {
+    "name": "b1c2d3e4f5a6b7c8d9e0",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "p1",
+        "boundFilter": "f1",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Product"
+              }
+            },
+            "Property": "Category"
+          }
+        }
+      }
+    ]
+  }
+}

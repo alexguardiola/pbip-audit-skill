@@ -1,0 +1,31 @@
+{
+  "Results": [
+    {
+      "RuleId": "ENSURE_THEME_COLOURS",
+      "RuleName": "Ensure theme colours",
+      "RuleDescription": "Avoid hard-coded hex colours.",
+      "LogType": "Warning",
+      "Pass": false,
+      "ItemPath": "Defects.Report/definition/pages/page1/visuals/card00/visual.json",
+      "Expected": [],
+      "Actual": [
+        "#FF0000"
+      ]
+    },
+    {
+      "RuleId": "REDUCE_VISUALS_ON_PAGE",
+      "RuleName": "Reduce visuals on page",
+      "LogType": "Error",
+      "Pass": false,
+      "ParentDisplayName": "Page 1",
+      "Expected": 20,
+      "Actual": 25
+    },
+    {
+      "RuleId": "ENSURE_ALTTEXT",
+      "RuleName": "Ensure alt text",
+      "LogType": "Warning",
+      "Pass": true
+    }
+  ]
+}

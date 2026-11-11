@@ -1,0 +1,37 @@
+table Product
+
+	column ProductKey
+		dataType: int64
+		isKey
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column Color
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Color
+
+	column Weight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Weight
+
+	column 'Unused Attr'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: UnusedAttr
+
+	%%% this line is not valid TMDL
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("db.example.invalid", "demo", [Query="select 1", ConnectionString="Uid=demo;Password=hunter2"])
+				in
+				    Source

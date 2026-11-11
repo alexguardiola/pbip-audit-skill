@@ -1,0 +1,3219 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "pbip-audit",
+          "version": "0.2.0",
+          "semanticVersion": "0.2.0",
+          "informationUri": "https://github.com/alexguardiola/pbip-audit-skill",
+          "rules": [
+            {
+              "id": "A11Y-01",
+              "name": "VisualsWithoutAltText",
+              "shortDescription": {
+                "text": "Visuals without alt text"
+              },
+              "fullDescription": {
+                "text": "Screen readers announce only the visual type when alt text is missing."
+              },
+              "help": {
+                "text": "How to verify: Visible, non-decorative, non-slicer visuals with no `general.altText` (counted per page).\nFix: Add alt text that states the insight, or bind it to a measure for dynamic text.",
+                "markdown": "**How to verify:** Visible, non-decorative, non-slicer visuals with no `general.altText` (counted per page).\n\n**Fix:** Add alt text that states the insight, or bind it to a measure for dynamic text."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-accessibility-creating-reports",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "accessibility",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "accessibility"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "A11Y-04",
+              "name": "TabOrderDoesNotFollowReadingOrder",
+              "shortDescription": {
+                "text": "Tab order does not follow reading order"
+              },
+              "fullDescription": {
+                "text": "Keyboard users jump around the page when tab order ignores the visual layout."
+              },
+              "help": {
+                "text": "How to verify: Compare `position.tabOrder` with a top-to-bottom, left-to-right order (visuals within the row band, default 40px, share a row); flag when more than the tolerance (default 40%) of pairs are inverted. Both are configurable.\nFix: Set the tab order in the Selection pane.",
+                "markdown": "**How to verify:** Compare `position.tabOrder` with a top-to-bottom, left-to-right order (visuals within the row band, default 40px, share a row); flag when more than the tolerance (default 40%) of pairs are inverted. Both are configurable.\n\n**Fix:** Set the tab order in the Selection pane."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-accessibility-creating-reports",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "accessibility",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "accessibility"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "A11Y-05",
+              "name": "InsufficientTextOrGraphicsContrast",
+              "shortDescription": {
+                "text": "Insufficient text or graphics contrast"
+              },
+              "fullDescription": {
+                "text": "WCAG 2.2 requires 4.5:1 for normal text, 3:1 for large text (18pt+) and 3:1 for graphical objects such as series colours."
+              },
+              "help": {
+                "text": "How to verify: The scanner resolves the base + custom theme and `ThemeDataColor` references and computes WCAG relative-luminance contrast for: theme foreground and text classes against the theme background; literal or theme font colours in visuals against the visual, page or theme background (only when every plausible background fails, and never when a shape or image sits underneath); and the first N custom-theme data colours against the background (Medium). Measure-driven colours are not assessable offline; the agent checks the remaining cases by hand.\nFix: Adjust the theme palette or the visual's font/background colours.",
+                "markdown": "**How to verify:** The scanner resolves the base + custom theme and `ThemeDataColor` references and computes WCAG relative-luminance contrast for: theme foreground and text classes against the theme background; literal or theme font colours in visuals against the visual, page or theme background (only when every plausible background fails, and never when a shape or image sits underneath); and the first N custom-theme data colours against the background (Medium). Measure-driven colours are not assessable offline; the agent checks the remaining cases by hand.\n\n**Fix:** Adjust the theme palette or the visual's font/background colours."
+              },
+              "helpUri": "https://www.w3.org/TR/WCAG22/",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "accessibility",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "accessibility"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "A11Y-07",
+              "name": "SeriesColoursConfusableUnderColourVisionDeficiency",
+              "shortDescription": {
+                "text": "Series colours confusable under colour-vision deficiency"
+              },
+              "fullDescription": {
+                "text": "About 1 in 12 men have a red-green colour-vision deficiency. Two series colours that look distinct to most readers can collapse into one, so legends and comparisons stop working."
+              },
+              "help": {
+                "text": "How to verify: Simulate protanopia and deuteranopia (Machado et al. 2009) on the first N data colours of a custom theme and flag pairs whose CIELAB delta E falls below the threshold (default 10) while being clearly distinct (2x threshold) for normal vision.\nFix: Replace one colour of each pair (vary lightness, not only hue), or add markers, patterns or direct labels.",
+                "markdown": "**How to verify:** Simulate protanopia and deuteranopia (Machado et al. 2009) on the first N data colours of a custom theme and flag pairs whose CIELAB delta E falls below the threshold (default 10) while being clearly distinct (2x threshold) for normal vision.\n\n**Fix:** Replace one colour of each pair (vary lightness, not only hue), or add markers, patterns or direct labels."
+              },
+              "helpUri": "https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "accessibility",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "accessibility"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "BIND-01",
+              "name": "ReportFieldReferencesAModelObjectThatDoesNotExist",
+              "shortDescription": {
+                "text": "Report field references a model object that does not exist"
+              },
+              "fullDescription": {
+                "text": "A visual, filter or bookmark that points at a missing table, column, measure or hierarchy renders as an error (or silently drops a filter) for every viewer. No local tool checks this offline."
+              },
+              "help": {
+                "text": "How to verify: Index every `SourceRef.Entity` + `Property` in visual.json, page.json, report.json and bookmarks (resolving `Source` aliases through `From`) and look each one up in the TMDL tables, columns, measures, hierarchies and reportExtensions.json.\nFix: Rebind the field in Desktop (or edit the JSON) to the renamed object, or restore the object in the model.",
+                "markdown": "**How to verify:** Index every `SourceRef.Entity` + `Property` in visual.json, page.json, report.json and bookmarks (resolving `Source` aliases through `From`) and look each one up in the TMDL tables, columns, measures, hierarchies and reportExtensions.json.\n\n**Fix:** Rebind the field in Desktop (or edit the JSON) to the renamed object, or restore the object in the model."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/developer/projects/projects-report",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Critical",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "9.0"
+              }
+            },
+            {
+              "id": "BIND-03",
+              "name": "BookmarkStoresStateForAModelObjectThatNoLongerExists",
+              "shortDescription": {
+                "text": "Bookmark stores state for a model object that no longer exists"
+              },
+              "fullDescription": {
+                "text": "Bookmarks snapshot visual query state. After a measure or column is renamed or deleted, applying the bookmark can restore a broken field list."
+              },
+              "help": {
+                "text": "How to verify: Model references inside `bookmarks/*.bookmark.json` that do not resolve against the TMDL.\nFix: Re-capture (update) the bookmark after fixing the page, or delete it if unused.",
+                "markdown": "**How to verify:** Model references inside `bookmarks/*.bookmark.json` that do not resolve against the TMDL.\n\n**Fix:** Re-capture (update) the bookmark after fixing the page, or delete it if unused."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-bookmarks",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "DAX-01",
+              "name": "DivisionOperatorInsteadOfDivide",
+              "shortDescription": {
+                "text": "Division operator instead of DIVIDE"
+              },
+              "fullDescription": {
+                "text": "`/` raises an error or returns infinity when the denominator is zero or blank; DIVIDE handles it."
+              },
+              "help": {
+                "text": "How to verify: A `/` in a measure whose denominator is not a numeric constant (strings, comments and names are stripped first).\nFix: Use `DIVIDE(numerator, denominator)`.",
+                "markdown": "**How to verify:** A `/` in a measure whose denominator is not a numeric constant (strings, comments and names are stripped first).\n\n**Fix:** Use `DIVIDE(numerator, denominator)`."
+              },
+              "helpUri": "https://learn.microsoft.com/dax/best-practices/dax-divide-function-operator",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "dax",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "dax"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "DAX-03",
+              "name": "IferrorIserror",
+              "shortDescription": {
+                "text": "IFERROR / ISERROR"
+              },
+              "fullDescription": {
+                "text": "Error functions force row-by-row evaluation and hide data problems."
+              },
+              "help": {
+                "text": "How to verify: `IFERROR(` or `ISERROR(` in any DAX expression.\nFix: Use DIVIDE, defensive conditions, or fix the data.",
+                "markdown": "**How to verify:** `IFERROR(` or `ISERROR(` in any DAX expression.\n\n**Fix:** Use DIVIDE, defensive conditions, or fix the data."
+              },
+              "helpUri": "https://learn.microsoft.com/dax/best-practices/dax-error-functions",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "dax",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "dax"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "DAX-04",
+              "name": "BlankConvertedToZero",
+              "shortDescription": {
+                "text": "BLANK converted to zero"
+              },
+              "fullDescription": {
+                "text": "Turning BLANK into 0 makes visuals show every dimension member and can slow queries; sometimes it is intended."
+              },
+              "help": {
+                "text": "How to verify: `DIVIDE(a, b, 0)`; confirm intent before raising severity.\nFix: Return BLANK, or apply the zero only in the visual (show items with no data).",
+                "markdown": "**How to verify:** `DIVIDE(a, b, 0)`; confirm intent before raising severity.\n\n**Fix:** Return BLANK, or apply the zero only in the visual (show items with no data)."
+              },
+              "helpUri": "https://learn.microsoft.com/dax/best-practices/dax-avoid-converting-blank",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "dax",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "dax"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "DAX-07",
+              "name": "VisibleMeasureWithoutAFormatString",
+              "shortDescription": {
+                "text": "Visible measure without a format string"
+              },
+              "fullDescription": {
+                "text": "Unformatted measures show raw decimals and inconsistent units across visuals and in Copilot answers."
+              },
+              "help": {
+                "text": "How to verify: Visible measures with no `formatString` and no `formatStringDefinition`. Measures that look textual (name suggests title/label/colour, or the expression uses FORMAT, SELECTEDVALUE, CONCATENATEX, `&` or returns string literals) are skipped.\nFix: Set a format string on every visible measure.",
+                "markdown": "**How to verify:** Visible measures with no `formatString` and no `formatStringDefinition`. Measures that look textual (name suggests title/label/colour, or the expression uses FORMAT, SELECTEDVALUE, CONCATENATEX, `&` or returns string literals) are skipped.\n\n**Fix:** Set a format string on every visible measure."
+              },
+              "helpUri": "https://github.com/TabularEditor/BestPracticeRules",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "dax",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "dax"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "DAX-08",
+              "name": "TodoFixmeLeftInDax",
+              "shortDescription": {
+                "text": "TODO / FIXME left in DAX"
+              },
+              "fullDescription": {
+                "text": "Open work notes in production measures signal unfinished logic."
+              },
+              "help": {
+                "text": "How to verify: `TODO`, `FIXME` or `HACK` inside a DAX expression.\nFix: Resolve or move the note to the issue tracker.",
+                "markdown": "**How to verify:** `TODO`, `FIXME` or `HACK` inside a DAX expression.\n\n**Fix:** Resolve or move the note to the issue tracker."
+              },
+              "helpUri": "https://github.com/TabularEditor/BestPracticeRules",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "dax",
+                "severity": "Low",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "dax"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "GOV-01",
+              "name": "VisibleMeasureWithoutADescription",
+              "shortDescription": {
+                "text": "Visible measure without a description"
+              },
+              "fullDescription": {
+                "text": "Descriptions show in tooltips, field lists and feed Copilot/Q&A grounding. Missing descriptions are the main AI-readiness gap."
+              },
+              "help": {
+                "text": "How to verify: Visible measures without a `///` description line.\nFix: Add a one-sentence description that says what the measure counts and any window or exclusion.",
+                "markdown": "**How to verify:** Visible measures without a `///` description line.\n\n**Fix:** Add a one-sentence description that says what the measure counts and any window or exclusion."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/copilot-prepare-data-ai",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "governance",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "governance"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "GOV-02",
+              "name": "DescriptionLongerThan200Characters",
+              "shortDescription": {
+                "text": "Description longer than 200 characters"
+              },
+              "fullDescription": {
+                "text": "Copilot and tooltips truncate long descriptions."
+              },
+              "help": {
+                "text": "How to verify: `///` description over 200 characters on a measure, column or table.\nFix: Keep the first sentence self-contained; move detail to documentation.",
+                "markdown": "**How to verify:** `///` description over 200 characters on a measure, column or table.\n\n**Fix:** Keep the first sentence self-contained; move detail to documentation."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/copilot-semantic-models",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "governance",
+                "severity": "Low",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "governance"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "GOV-09",
+              "name": "CredentialInMOrSharedExpression",
+              "shortDescription": {
+                "text": "Credential in M or shared expression"
+              },
+              "fullDescription": {
+                "text": "Passwords in source control leak to everyone with repository access."
+              },
+              "help": {
+                "text": "How to verify: `password=` / `pwd=` patterns in partition sources and expressions.tmdl.\nFix: Remove the secret, rotate it and use gateway / data-source credentials.",
+                "markdown": "**How to verify:** `password=` / `pwd=` patterns in partition sources and expressions.tmdl.\n\n**Fix:** Remove the secret, rotate it and use gateway / data-source credentials."
+              },
+              "helpUri": "https://learn.microsoft.com/analysis-services/tmdl/tmdl-overview",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "governance",
+                "severity": "Critical",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "governance"
+                ],
+                "security-severity": "9.0"
+              }
+            },
+            {
+              "id": "GOV-14",
+              "name": "PageOrVisualFolderNameIgnoredByDesktop",
+              "shortDescription": {
+                "text": "Page or visual folder name ignored by Desktop"
+              },
+              "fullDescription": {
+                "text": "Folder names that are not word characters or hyphens are silently ignored as private files, so the page or visual disappears."
+              },
+              "help": {
+                "text": "How to verify: Folder names under `pages/` and `visuals/` not matching `^[\\w-]+$`.\nFix: Rename the folder to letters, digits, underscores or hyphens.",
+                "markdown": "**How to verify:** Folder names under `pages/` and `visuals/` not matching `^[\\w-]+$`.\n\n**Fix:** Rename the folder to letters, digits, underscores or hyphens."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/developer/projects/projects-report",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "governance",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "governance"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "GOV-15",
+              "name": "UnparseableJsonOrTmdl",
+              "shortDescription": {
+                "text": "Unparseable JSON or TMDL"
+              },
+              "fullDescription": {
+                "text": "Desktop refuses to open a project with invalid files."
+              },
+              "help": {
+                "text": "How to verify: JSON decode errors and unrecognised TMDL lines.\nFix: Fix the file (usually a merge conflict or manual edit).",
+                "markdown": "**How to verify:** JSON decode errors and unrecognised TMDL lines.\n\n**Fix:** Fix the file (usually a merge conflict or manual edit)."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/developer/projects/projects-report",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "governance",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "governance"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "IN-01",
+              "name": "HiddenFilterCarryBusiness",
+              "shortDescription": {
+                "text": "Hidden filter (may carry business logic)"
+              },
+              "fullDescription": {
+                "text": "Filters hidden from the filter pane change numbers without the reader knowing. Often legitimate (scope), so confirm intent."
+              },
+              "help": {
+                "text": "How to verify: `isHiddenInViewMode: true` on a report, page or visual filter.\nFix: Lock instead of hide, or state the scope in the title / description.",
+                "markdown": "**How to verify:** `isHiddenInViewMode: true` on a report, page or visual filter.\n\n**Fix:** Lock instead of hide, or state the scope in the title / description."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/power-bi-report-filter",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "Medium",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "IN-02",
+              "name": "HiddenSlicerInASyncGroup",
+              "shortDescription": {
+                "text": "Hidden slicer in a sync group"
+              },
+              "fullDescription": {
+                "text": "A hidden synced slicer filters the page invisibly; the reader sees the effect but not the control."
+              },
+              "help": {
+                "text": "How to verify: Slicer with `isHidden: true` and a `syncGroup`, with no visible slicer on the same field on that page.\nFix: Show the slicer, or show the active selection in a title/card.",
+                "markdown": "**How to verify:** Slicer with `isHidden: true` and a `syncGroup`, with no visible slicer on the same field on that page.\n\n**Fix:** Show the slicer, or show the active selection in a title/card."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualization-slicers",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "IN-03",
+              "name": "SyncGroupMixesDifferentFields",
+              "shortDescription": {
+                "text": "Sync group mixes different fields"
+              },
+              "fullDescription": {
+                "text": "Slicers on different fields sharing one sync group push selections onto the wrong field, silently filtering the wrong dimension."
+              },
+              "help": {
+                "text": "How to verify: `visual.syncGroup.groupName` shared by slicers bound to different fields.\nFix: Give each field its own sync group.",
+                "markdown": "**How to verify:** `visual.syncGroup.groupName` shared by slicers bound to different fields.\n\n**Fix:** Give each field its own sync group."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualization-slicers",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "IN-04",
+              "name": "SameFieldSlicedInDifferentSyncGroups",
+              "shortDescription": {
+                "text": "Same field sliced in different sync groups"
+              },
+              "fullDescription": {
+                "text": "Slicers on the same field across pages that are in different sync groups keep separate selections, so pages disagree."
+              },
+              "help": {
+                "text": "How to verify: One field bound to slicers whose `syncGroup.groupName` differ.\nFix: Use one sync group per field unless independence is intended.",
+                "markdown": "**How to verify:** One field bound to slicers whose `syncGroup.groupName` differ.\n\n**Fix:** Use one sync group per field unless independence is intended."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualization-slicers",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "IN-05",
+              "name": "RollingWindowMeasureShownWithoutAWindowLabel",
+              "shortDescription": {
+                "text": "Rolling-window measure shown without a window label"
+              },
+              "fullDescription": {
+                "text": "A measure that rebuilds its own date window from TODAY() and removes date filters ignores the date slicer. If the visual title does not say so, readers assume it follows the slicer. Heuristic."
+              },
+              "help": {
+                "text": "How to verify: Measure with TODAY/NOW plus REMOVEFILTERS/ALL on a date table (or DATESBETWEEN/DATESINPERIOD), bound in a visual whose title, display name, measure name and measure description contain no window words (last N, rolling, trailing, YTD, 12M, L3M, R12...).\nFix: Say the window in the title (\"Revenue, last 3 closed months\") or in a subtitle.",
+                "markdown": "**How to verify:** Measure with TODAY/NOW plus REMOVEFILTERS/ALL on a date table (or DATESBETWEEN/DATESINPERIOD), bound in a visual whose title, display name, measure name and measure description contain no window words (last N, rolling, trailing, YTD, 12M, L3M, R12...).\n\n**Fix:** Say the window in the title (\"Revenue, last 3 closed months\") or in a subtitle."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/model-date-tables",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "IN-07",
+              "name": "DrillthroughPageWithoutABackButton",
+              "shortDescription": {
+                "text": "Drillthrough page without a back button"
+              },
+              "fullDescription": {
+                "text": "Users land on the drillthrough page and cannot return without knowing the Ctrl/Alt shortcut."
+              },
+              "help": {
+                "text": "How to verify: `pageBinding.type: Drillthrough` page with no actionButton of type Back.\nFix: Add a Back button (Insert > Buttons > Back).",
+                "markdown": "**How to verify:** `pageBinding.type: Drillthrough` page with no actionButton of type Back.\n\n**Fix:** Add a Back button (Insert > Buttons > Back)."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-drillthrough",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "IN-13",
+              "name": "YearSlicerExposesFutureYears",
+              "shortDescription": {
+                "text": "Year slicer exposes future years"
+              },
+              "fullDescription": {
+                "text": "When the date table extends past the current year (for forecasts), a year slicer lists empty future years and users pick them by mistake."
+              },
+              "help": {
+                "text": "How to verify: Slicer on a year column of a date table whose definition reaches beyond the current year, with no visual, page or report filter on the date table.\nFix: Add a visual-level filter (e.g. an `Is Past or Current Year` flag) or trim the slicer values.",
+                "markdown": "**How to verify:** Slicer on a year column of a date table whose definition reaches beyond the current year, with no visual, page or report filter on the date table.\n\n**Fix:** Add a visual-level filter (e.g. an `Is Past or Current Year` flag) or trim the slicer values."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/model-date-tables",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "interaction",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "interaction"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "MOB-01",
+              "name": "NoPageHasAMobileLayout",
+              "shortDescription": {
+                "text": "No page has a mobile layout"
+              },
+              "fullDescription": {
+                "text": "Phone users get the scaled desktop canvas, which is hard to read."
+              },
+              "help": {
+                "text": "How to verify: No `mobile.json` files in the report.\nFix: Create a mobile layout for the pages that mobile users open.",
+                "markdown": "**How to verify:** No `mobile.json` files in the report.\n\n**Fix:** Create a mobile layout for the pages that mobile users open."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/power-bi-create-mobile-optimized-report-mobile-layout-view",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "mobile",
+                "severity": "Info",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "mobile"
+                ],
+                "security-severity": "1.0"
+              }
+            },
+            {
+              "id": "MOD-01",
+              "name": "BidirectionalRelationship",
+              "shortDescription": {
+                "text": "Bidirectional relationship"
+              },
+              "fullDescription": {
+                "text": "Both-direction cross filtering creates ambiguous filter paths, slows queries and can give unexpected totals. It is justified mainly for bridge tables and some one-to-one cases."
+              },
+              "help": {
+                "text": "How to verify: `crossFilteringBehavior: bothDirections` in relationships.tmdl.\nFix: Set the relationship to single direction; use `CROSSFILTER` inside the specific measures that need it.",
+                "markdown": "**How to verify:** `crossFilteringBehavior: bothDirections` in relationships.tmdl.\n\n**Fix:** Set the relationship to single direction; use `CROSSFILTER` inside the specific measures that need it."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/relationships-bidirectional-filtering",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "MOD-02",
+              "name": "OneToOneRelationship",
+              "shortDescription": {
+                "text": "One-to-one relationship"
+              },
+              "fullDescription": {
+                "text": "One-to-one relationships usually mean two tables that should be merged; they also make filter direction harder to reason about."
+              },
+              "help": {
+                "text": "How to verify: `fromCardinality: one` and `toCardinality: one` on the same relationship.\nFix: Merge the tables in Power Query, or document why they stay separate.",
+                "markdown": "**How to verify:** `fromCardinality: one` and `toCardinality: one` on the same relationship.\n\n**Fix:** Merge the tables in Power Query, or document why they stay separate."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/star-schema",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "MOD-03",
+              "name": "InactiveRelationshipNeverActivatedWithUserelationship",
+              "shortDescription": {
+                "text": "Inactive relationship never activated with USERELATIONSHIP"
+              },
+              "fullDescription": {
+                "text": "An inactive relationship that no measure activates is dead weight and often a forgotten modelling mistake."
+              },
+              "help": {
+                "text": "How to verify: `isActive: false` with no `USERELATIONSHIP(...)` call in any DAX expression that names both columns.\nFix: Delete the relationship, or add the measures that use it.",
+                "markdown": "**How to verify:** `isActive: false` with no `USERELATIONSHIP(...)` call in any DAX expression that names both columns.\n\n**Fix:** Delete the relationship, or add the measures that use it."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/star-schema",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "MOD-04",
+              "name": "TimeIntelligenceDaxWithoutAMarkedDateTable",
+              "shortDescription": {
+                "text": "Time-intelligence DAX without a marked date table"
+              },
+              "fullDescription": {
+                "text": "Functions such as SAMEPERIODLASTYEAR or DATESYTD require a contiguous date column. Without a marked date table they can return wrong results when the relationship is not on a date-typed column."
+              },
+              "help": {
+                "text": "How to verify: Any measure using a time-intelligence function while no table has `dataCategory: Time`.\nFix: Mark the calendar table as a date table (Table tools > Mark as date table).",
+                "markdown": "**How to verify:** Any measure using a time-intelligence function while no table has `dataCategory: Time`.\n\n**Fix:** Mark the calendar table as a date table (Table tools > Mark as date table)."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/model-date-tables",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "High",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "7.0"
+              }
+            },
+            {
+              "id": "MOD-05",
+              "name": "AutoDateTimeIsEnabled",
+              "shortDescription": {
+                "text": "Auto date/time is enabled"
+              },
+              "fullDescription": {
+                "text": "Auto date/time creates a hidden LocalDateTable per date column, inflating model size and producing inconsistent time intelligence."
+              },
+              "help": {
+                "text": "How to verify: `annotation __PBI_TimeIntelligenceEnabled = 1` in model.tmdl or `LocalDateTable_*` tables.\nFix: Disable Auto date/time in the file options and use one shared, marked date table.",
+                "markdown": "**How to verify:** `annotation __PBI_TimeIntelligenceEnabled = 1` in model.tmdl or `LocalDateTable_*` tables.\n\n**Fix:** Disable Auto date/time in the file options and use one shared, marked date table."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/auto-date-time",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "MOD-07",
+              "name": "ForeignKeyColumnIsVisible",
+              "shortDescription": {
+                "text": "Foreign-key column is visible"
+              },
+              "fullDescription": {
+                "text": "Visible key columns invite users to slice by the fact-side key instead of the dimension attribute, which bypasses the dimension."
+              },
+              "help": {
+                "text": "How to verify: Columns used on the many side of a relationship without `isHidden`.\nFix: Hide foreign-key columns in the fact table.",
+                "markdown": "**How to verify:** Columns used on the many side of a relationship without `isHidden`.\n\n**Fix:** Hide foreign-key columns in the fact table."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/star-schema",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "MOD-08",
+              "name": "FloatingPointDataType",
+              "shortDescription": {
+                "text": "Floating-point (double) data type"
+              },
+              "fullDescription": {
+                "text": "Double can introduce rounding differences in sums; fixed decimal (`decimal`) or whole numbers are exact and compress better."
+              },
+              "help": {
+                "text": "How to verify: `dataType: double` on columns.\nFix: Use Fixed decimal number for currency, whole number for counts.",
+                "markdown": "**How to verify:** `dataType: double` on columns.\n\n**Fix:** Use Fixed decimal number for currency, whole number for counts."
+              },
+              "helpUri": "https://github.com/TabularEditor/BestPracticeRules",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "MOD-09",
+              "name": "ImplicitMeasuresAreNotDiscouraged",
+              "shortDescription": {
+                "text": "Implicit measures are not discouraged"
+              },
+              "fullDescription": {
+                "text": "Without `discourageImplicitMeasures`, users drag raw numeric columns and get default sums that bypass business logic and confuse Copilot."
+              },
+              "help": {
+                "text": "How to verify: `discourageImplicitMeasures` missing from model.tmdl.\nFix: Enable it (it is required for calculation groups anyway) and expose explicit measures.",
+                "markdown": "**How to verify:** `discourageImplicitMeasures` missing from model.tmdl.\n\n**Fix:** Enable it (it is required for calculation groups anyway) and expose explicit measures."
+              },
+              "helpUri": "https://github.com/TabularEditor/BestPracticeRules",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "MOD-10",
+              "name": "UnusedColumnsOrMeasures",
+              "shortDescription": {
+                "text": "Unused columns or measures"
+              },
+              "fullDescription": {
+                "text": "Objects referenced by no visual, filter, measure, relationship, sort or RLS rule cost memory and maintenance."
+              },
+              "help": {
+                "text": "How to verify: Join the report reference index with every DAX text, relationship, sortByColumn and hierarchy level. Objects listed in an `--external-usage` file (used by other reports, Excel or paginated reports on the same model) count as used.\nFix: Remove them after checking that no other report bound to this model uses them; record known external consumers in an external-usage file.",
+                "markdown": "**How to verify:** Join the report reference index with every DAX text, relationship, sortByColumn and hierarchy level. Objects listed in an `--external-usage` file (used by other reports, Excel or paginated reports on the same model) count as used.\n\n**Fix:** Remove them after checking that no other report bound to this model uses them; record known external consumers in an external-usage file."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/import-modeling-data-reduction",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "model",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "model"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "PERF-01",
+              "name": "TooManyDataVisualsOnOnePage",
+              "shortDescription": {
+                "text": "Too many data visuals on one page"
+              },
+              "fullDescription": {
+                "text": "Each data visual sends at least one query; busy pages render slowly and overload the reader. There is no official limit; the default threshold is 12 data-bound visuals."
+              },
+              "help": {
+                "text": "How to verify: Count visible, data-bound visuals per page (`--max-visuals`).\nFix: Split the page, use a multi-row card or a small multiple, or move detail to drillthrough.",
+                "markdown": "**How to verify:** Count visible, data-bound visuals per page (`--max-visuals`).\n\n**Fix:** Split the page, use a multi-row card or a small multiple, or move detail to drillthrough."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/guidance/power-bi-optimization",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "performance",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "performance"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "PERF-02",
+              "name": "TooManyFieldsInOneVisual",
+              "shortDescription": {
+                "text": "Too many fields in one visual"
+              },
+              "fullDescription": {
+                "text": "Wide visuals generate heavy queries and are hard to read (hard limit is far higher)."
+              },
+              "help": {
+                "text": "How to verify: More than 20 projections in one visual.\nFix: Split the visual or use drillthrough for detail.",
+                "markdown": "**How to verify:** More than 20 projections in one visual.\n\n**Fix:** Split the visual or use drillthrough for detail."
+              },
+              "helpUri": "https://github.com/NatVanG/fab-inspector",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "performance",
+                "severity": "Low",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "performance"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "ST-01",
+              "name": "DefaultPageNames",
+              "shortDescription": {
+                "text": "Default page names"
+              },
+              "fullDescription": {
+                "text": "`Page 1` or `Duplicate of ...` tells the reader nothing and shows an unfinished report."
+              },
+              "help": {
+                "text": "How to verify: Page `displayName` matching default patterns (configurable).\nFix: Name pages after the question they answer.",
+                "markdown": "**How to verify:** Page `displayName` matching default patterns (configurable).\n\n**Fix:** Name pages after the question they answer."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/service-dashboards-design-tips",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "storytelling",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "storytelling"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "ST-05",
+              "name": "HiddenPageThatIsNotATooltipOrNavigationTarget",
+              "shortDescription": {
+                "text": "Hidden page that is not a drillthrough, tooltip or navigation target"
+              },
+              "fullDescription": {
+                "text": "A hidden page nobody can reach is dead content or a forgotten draft."
+              },
+              "help": {
+                "text": "How to verify: `visibility: HiddenInViewMode` without `pageBinding`, tooltip type, or any reference to the page name in visuals/bookmarks.\nFix: Delete it or wire it to a button/bookmark.",
+                "markdown": "**How to verify:** `visibility: HiddenInViewMode` without `pageBinding`, tooltip type, or any reference to the page name in visuals/bookmarks.\n\n**Fix:** Delete it or wire it to a button/bookmark."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-drillthrough",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "storytelling",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "storytelling"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "VD-01",
+              "name": "PieOrDonutChart",
+              "shortDescription": {
+                "text": "Pie or donut chart"
+              },
+              "fullDescription": {
+                "text": "Angles are hard to compare and the charts break down beyond a handful of categories. The type is deterministic, the category count is runtime."
+              },
+              "help": {
+                "text": "How to verify: `visualType` pieChart / donutChart.\nFix: Prefer a sorted bar chart; keep pies to 2-5 categories.",
+                "markdown": "**How to verify:** `visualType` pieChart / donutChart.\n\n**Fix:** Prefer a sorted bar chart; keep pies to 2-5 categories."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualization-best-practices",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "visual-design",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "visual-design"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "VD-02",
+              "name": "GaugeWithoutATarget",
+              "shortDescription": {
+                "text": "Gauge without a target"
+              },
+              "fullDescription": {
+                "text": "A gauge without a target has no reference point, so the reader cannot judge the value."
+              },
+              "help": {
+                "text": "How to verify: `gauge` visual with no `TargetValue` projection.\nFix: Bind a target measure or replace with a card plus comparison.",
+                "markdown": "**How to verify:** `gauge` visual with no `TargetValue` projection.\n\n**Fix:** Bind a target measure or replace with a card plus comparison."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/visuals/power-bi-visualization-radial-gauge-charts",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "visual-design",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "visual-design"
+                ],
+                "security-severity": "5.0"
+              }
+            },
+            {
+              "id": "VD-06",
+              "name": "HardCodedHexColours",
+              "shortDescription": {
+                "text": "Hard-coded hex colours"
+              },
+              "fullDescription": {
+                "text": "Literal colours bypass the theme, so rebranding and accessibility fixes must be done visual by visual."
+              },
+              "help": {
+                "text": "How to verify: `'#RRGGBB'` literals in visual.json, compared with the resolved report theme (base + custom). Low when a literal is outside the theme palette; Info when every literal equals a theme colour (it still will not follow a theme change). Counted per page.\nFix: Use theme colours (`ThemeDataColor`) or define the colour in the theme JSON.",
+                "markdown": "**How to verify:** `'#RRGGBB'` literals in visual.json, compared with the resolved report theme (base + custom). Low when a literal is outside the theme palette; Info when every literal equals a theme colour (it still will not follow a theme change). Counted per page.\n\n**Fix:** Use theme colours (`ThemeDataColor`) or define the colour in the theme JSON."
+              },
+              "helpUri": "https://learn.microsoft.com/power-bi/create-reports/desktop-report-themes",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "pillar": "visual-design",
+                "severity": "Low",
+                "check": "D",
+                "type": "recommendation",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "visual-design"
+                ],
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "VD-10",
+              "name": "VisualOutsideThePageCanvas",
+              "shortDescription": {
+                "text": "Visual outside the page canvas"
+              },
+              "fullDescription": {
+                "text": "Visuals beyond the page bounds are cut off or force scrolling."
+              },
+              "help": {
+                "text": "How to verify: `position.x + width` or `y + height` beyond the page size.\nFix: Move or resize the visual, or change the page size deliberately.",
+                "markdown": "**How to verify:** `position.x + width` or `y + height` beyond the page size.\n\n**Fix:** Move or resize the visual, or change the page size deliberately."
+              },
+              "helpUri": "https://github.com/NatVanG/fab-inspector",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "pillar": "visual-design",
+                "severity": "Medium",
+                "check": "D",
+                "type": "defect",
+                "tags": [
+                  "power-bi",
+                  "pbip",
+                  "visual-design"
+                ],
+                "security-severity": "5.0"
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "description": {
+            "text": "Repository root (evidence paths are relative to the folder holding the .pbip, plus --path-prefix)."
+          }
+        }
+      },
+      "automationDetails": {
+        "id": "pbip-audit/Defects.pbip/"
+      },
+      "results": [
+        {
+          "ruleId": "BIND-01",
+          "level": "error",
+          "message": {
+            "text": "Missing table: 'Missing'[Thing] is referenced in 1 place(s) but is not defined in the semantic model."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/broken/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 40
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState.Values.projections[1].field.Column"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "BIND-01|Defects.Report/definition/pages/page1/visuals/broken/visual.json|Missing table: 'Missing'[Thing] is referenced in 1 place(s) but is not defined in the semantic model."
+          },
+          "properties": {
+            "severity": "Critical",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "BIND-01#1"
+          },
+          "ruleIndex": 4
+        },
+        {
+          "ruleId": "BIND-01",
+          "level": "error",
+          "message": {
+            "text": "Missing measure: 'Orders'[Ghost Measure] is referenced in 1 place(s) but is not defined in the semantic model."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/broken/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 26
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState.Values.projections[0].field.Measure"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "BIND-01|Defects.Report/definition/pages/page1/visuals/broken/visual.json|Missing measure: 'Orders'[Ghost Measure] is referenced in 1 place(s) but is not defined in the semantic model."
+          },
+          "properties": {
+            "severity": "Critical",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "BIND-01#2"
+          },
+          "ruleIndex": 4
+        },
+        {
+          "ruleId": "GOV-09",
+          "level": "error",
+          "message": {
+            "text": "A password-like key/value pair appears in M source code."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 31
+                }
+              },
+              "message": {
+                "text": "partition Product"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-09|Defects.SemanticModel/definition/tables/Product.tmdl|A password-like key/value pair appears in M source code."
+          },
+          "properties": {
+            "severity": "Critical",
+            "pillar": "governance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "GOV-09#1"
+          },
+          "ruleIndex": 13
+        },
+        {
+          "ruleId": "A11Y-01",
+          "level": "error",
+          "message": {
+            "text": "Page 'Page 1': 14 of 14 non-decorative visuals have no alt text."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/broken/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card00/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card01/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card02/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card03/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card04/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card05/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card06/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card07/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card08/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType card"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-01|Defects.Report/definition/pages/page1/visuals/broken/visual.json|Page 'Page 1': 14 of 14 non-decorative visuals have no alt text."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "accessibility",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "A11Y-01#1"
+          },
+          "ruleIndex": 0
+        },
+        {
+          "ruleId": "A11Y-05",
+          "level": "error",
+          "message": {
+            "text": "The report theme sets 1 text colour(s) below the WCAG contrast minimum against the theme background."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/StaticResources/RegisteredResources/BrandTheme.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.foreground foreground #9A9A9A on background #FFFFFF = 2.81:1"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-05|Defects.Report/StaticResources/RegisteredResources/BrandTheme.json|The report theme sets 1 text colour(s) below the WCAG contrast minimum against the theme background."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "accessibility",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "A11Y-05#1"
+          },
+          "ruleIndex": 2
+        },
+        {
+          "ruleId": "A11Y-05",
+          "level": "error",
+          "message": {
+            "text": "Page 'Duplicate of Page 1': 1 text colour(s) fall below the WCAG contrast minimum against every plausible background."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/pulse/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 54
+                }
+              },
+              "message": {
+                "text": "$.visual.visualContainerObjects.title[0].properties.fontColor card: text #FFFFFF (theme) on #FFFFFF = 1.00:1, needs 4.5:1"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-05|Defects.Report/definition/pages/page2/visuals/pulse/visual.json|Page 'Duplicate of Page 1': 1 text colour(s) fall below the WCAG contrast minimum against every plausible background."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "accessibility",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "A11Y-05#3"
+          },
+          "ruleIndex": 2
+        },
+        {
+          "ruleId": "BIND-03",
+          "level": "error",
+          "message": {
+            "text": "Bookmark 'Old view' stores state for 1 model object(s) that no longer exist; applying it can break visuals."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/bookmarks/bm1.bookmark.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              },
+              "message": {
+                "text": "$.explorationState.sections.page1.visualContainers.card00.singleVisual.query.queryState.Values.projections[0].field.Measure Missing measure: 'Orders'[Deleted Measure]"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "BIND-03|Defects.Report/definition/bookmarks/bm1.bookmark.json|Bookmark 'Old view' stores state for 1 model object(s) that no longer exist; applying it can break visuals."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "BIND-03#1"
+          },
+          "ruleIndex": 5
+        },
+        {
+          "ruleId": "GOV-14",
+          "level": "error",
+          "message": {
+            "text": "The page folder name is not word characters or hyphens, so Desktop ignores it."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/bad page!",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-14|Defects.Report/definition/pages/bad page!|The page folder name is not word characters or hyphens, so Desktop ignores it."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "governance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "GOV-14#1"
+          },
+          "ruleIndex": 14
+        },
+        {
+          "ruleId": "GOV-15",
+          "level": "error",
+          "message": {
+            "text": "Invalid JSON: Expecting property name enclosed in double quotes: line 1 column 34 (char 33)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/corrupt/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-15|Defects.Report/definition/pages/page2/visuals/corrupt/visual.json|Invalid JSON: Expecting property name enclosed in double quotes: line 1 column 34 (char 33)"
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "governance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "GOV-15#1"
+          },
+          "ruleIndex": 15
+        },
+        {
+          "ruleId": "GOV-15",
+          "level": "error",
+          "message": {
+            "text": "1 TMDL line(s) were not recognised by the tolerant parser. They may be valid syntax this parser does not know, or real errors."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              },
+              "message": {
+                "text": "unrecognised TMDL line: %%% this line is not valid TMDL"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-15|Defects.SemanticModel/definition/tables/Product.tmdl|1 TMDL line(s) were not recognised by the tolerant parser. They may be valid syntax this parser does not know, or real e"
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "governance",
+            "confidence": "low",
+            "classification": "defect",
+            "findingId": "GOV-15#2"
+          },
+          "ruleIndex": 15
+        },
+        {
+          "ruleId": "IN-02",
+          "level": "error",
+          "message": {
+            "text": "Hidden slicer on 'Product'[Color] in sync group 'Hidden' filters page 'Page 1' invisibly."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerHidden/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 42
+                }
+              },
+              "message": {
+                "text": "$.isHidden"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-02|Defects.Report/definition/pages/page1/visuals/slicerHidden/visual.json|Hidden slicer on 'Product'[Color] in sync group 'Hidden' filters page 'Page 1' invisibly."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-02#1"
+          },
+          "ruleIndex": 17
+        },
+        {
+          "ruleId": "IN-03",
+          "level": "error",
+          "message": {
+            "text": "Sync group 'Mixed' mixes 2 different fields: 'Product'[Category] | 'Product'[Color]."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerCat/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup page 'Page 1', field 'Product'[Category]"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/slicerColor/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup page 'Duplicate of Page 1', field 'Product'[Color]"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-03|Defects.Report/definition/pages/page1/visuals/slicerCat/visual.json|Sync group 'Mixed' mixes 2 different fields: 'Product'[Category] | 'Product'[Color]."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "interaction",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "IN-03#1"
+          },
+          "ruleIndex": 18
+        },
+        {
+          "ruleId": "MOD-04",
+          "level": "error",
+          "message": {
+            "text": "1 measure(s) use time-intelligence functions but no table is marked as a date table (dataCategory: Time)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 28
+                }
+              },
+              "message": {
+                "text": "Revenue PY"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-04|Defects.SemanticModel/definition/tables/Orders.tmdl|1 measure(s) use time-intelligence functions but no table is marked as a date table (dataCategory: Time)."
+          },
+          "properties": {
+            "severity": "High",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "MOD-04#1"
+          },
+          "ruleIndex": 27
+        },
+        {
+          "ruleId": "A11Y-05",
+          "level": "warning",
+          "message": {
+            "text": "2 of the first 8 theme data colours have less than 3:1 contrast with the background (WCAG 1.4.11, graphical objects)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/StaticResources/RegisteredResources/BrandTheme.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              },
+              "message": {
+                "text": "$.dataColors[3] series colour 4 #FFE600 on #FFFFFF = 1.27:1"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/StaticResources/RegisteredResources/BrandTheme.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              },
+              "message": {
+                "text": "$.dataColors[6] series colour 7 #17BECF on #FFFFFF = 2.26:1"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-05|Defects.Report/StaticResources/RegisteredResources/BrandTheme.json|2 of the first 8 theme data colours have less than 3:1 contrast with the background (WCAG 1.4.11, graphical objects)."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "accessibility",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "A11Y-05#2"
+          },
+          "ruleIndex": 2
+        },
+        {
+          "ruleId": "A11Y-07",
+          "level": "warning",
+          "message": {
+            "text": "2 pair(s) among the first 8 theme data colours are hard to tell apart with red-green colour-vision deficiency."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/StaticResources/RegisteredResources/BrandTheme.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              },
+              "message": {
+                "text": "$.dataColors[1] series 1 #D62728 vs series 2 #2CA02C: delta E 7.3 under deuteranopia (normal vision 120)"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/StaticResources/RegisteredResources/BrandTheme.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              },
+              "message": {
+                "text": "$.dataColors[4] series 3 #1F77B4 vs series 5 #9467BD: delta E 5.3 under protanopia (normal vision 38)"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-07|Defects.Report/StaticResources/RegisteredResources/BrandTheme.json|2 pair(s) among the first 8 theme data colours are hard to tell apart with red-green colour-vision deficiency."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "accessibility",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "A11Y-07#1"
+          },
+          "ruleIndex": 3
+        },
+        {
+          "ruleId": "DAX-01",
+          "level": "warning",
+          "message": {
+            "text": "Measure 'Avg Price' uses the / operator with a non-constant denominator."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              },
+              "message": {
+                "text": "Avg Price"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "DAX-01|Defects.SemanticModel/definition/tables/Orders.tmdl|Measure 'Avg Price' uses the / operator with a non-constant denominator."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "dax",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "DAX-01#1"
+          },
+          "ruleIndex": 6
+        },
+        {
+          "ruleId": "DAX-03",
+          "level": "warning",
+          "message": {
+            "text": "A measure expression uses IFERROR/ISERROR."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "DAX-03|Defects.SemanticModel/definition/tables/Orders.tmdl|A measure expression uses IFERROR/ISERROR."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "dax",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "DAX-03#1"
+          },
+          "ruleIndex": 7
+        },
+        {
+          "ruleId": "DAX-07",
+          "level": "warning",
+          "message": {
+            "text": "Table 'Orders' has 1 visible measure(s) without a format string: Revenue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              },
+              "message": {
+                "text": "Revenue"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "DAX-07|Defects.SemanticModel/definition/tables/Orders.tmdl|Table 'Orders' has 1 visible measure(s) without a format string: Revenue."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "dax",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "DAX-07#1"
+          },
+          "ruleIndex": 9
+        },
+        {
+          "ruleId": "GOV-01",
+          "level": "warning",
+          "message": {
+            "text": "Table 'Orders' has 1 visible measure(s) without a description: Revenue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              },
+              "message": {
+                "text": "Revenue"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-01|Defects.SemanticModel/definition/tables/Orders.tmdl|Table 'Orders' has 1 visible measure(s) without a description: Revenue."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "governance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "GOV-01#1"
+          },
+          "ruleIndex": 11
+        },
+        {
+          "ruleId": "IN-01",
+          "level": "warning",
+          "message": {
+            "text": "1 filter(s) are hidden from the filter pane; confirm none changes the meaning of the numbers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerCat/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 57
+                }
+              },
+              "message": {
+                "text": "$.filterConfig.filters[0].isHiddenInViewMode visual on page 'Page 1': 'Product'[Category]"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-01|Defects.Report/definition/pages/page1/visuals/slicerCat/visual.json|1 filter(s) are hidden from the filter pane; confirm none changes the meaning of the numbers."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "IN-01#1"
+          },
+          "ruleIndex": 16
+        },
+        {
+          "ruleId": "IN-04",
+          "level": "warning",
+          "message": {
+            "text": "Field 'Calendar'[Year] is sliced in 2 different sync groups: YearA, YearB."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerYearA/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup group 'YearA', page 'Page 1'"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/slicerYearB/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup group 'YearB', page 'Duplicate of Page 1'"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-04|Defects.Report/definition/pages/page1/visuals/slicerYearA/visual.json|Field 'Calendar'[Year] is sliced in 2 different sync groups: YearA, YearB."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-04#1"
+          },
+          "ruleIndex": 19
+        },
+        {
+          "ruleId": "IN-04",
+          "level": "warning",
+          "message": {
+            "text": "Field 'Product'[Color] is sliced in 2 different sync groups: Hidden, Mixed."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerHidden/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup group 'Hidden', page 'Page 1'"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/slicerColor/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36
+                }
+              },
+              "message": {
+                "text": "$.visual.syncGroup group 'Mixed', page 'Duplicate of Page 1'"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-04|Defects.Report/definition/pages/page1/visuals/slicerHidden/visual.json|Field 'Product'[Color] is sliced in 2 different sync groups: Hidden, Mixed."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-04#2"
+          },
+          "ruleIndex": 19
+        },
+        {
+          "ruleId": "IN-05",
+          "level": "warning",
+          "message": {
+            "text": "Visual on page 'Page 1' shows [Recent Revenue], which builds its own date window from TODAY() (direct), but neither the title ('Revenue'), the field names nor the measure description say so."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/windowCard/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 26
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState.Values.projections[0]"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 32
+                }
+              },
+              "message": {
+                "text": "Recent Revenue"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-05|Defects.Report/definition/pages/page1/visuals/windowCard/visual.json|Visual on page 'Page 1' shows [Recent Revenue], which builds its own date window from TODAY() (direct), but neither the "
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-05#1"
+          },
+          "ruleIndex": 20
+        },
+        {
+          "ruleId": "IN-07",
+          "level": "warning",
+          "message": {
+            "text": "Drillthrough page 'Category Drill' has no Back button."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/drill/page.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              },
+              "message": {
+                "text": "$.pageBinding"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-07|Defects.Report/definition/pages/drill/page.json|Drillthrough page 'Category Drill' has no Back button."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "IN-07#1"
+          },
+          "ruleIndex": 21
+        },
+        {
+          "ruleId": "IN-13",
+          "level": "warning",
+          "message": {
+            "text": "Slicer on 'Calendar'[Year] (page 'Page 1') has no filter limiting years, while the date table extends to 2031."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/slicerYearA/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 26
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState.Values.projections[0].field.Column"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Calendar.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "date table definition"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-13|Defects.Report/definition/pages/page1/visuals/slicerYearA/visual.json|Slicer on 'Calendar'[Year] (page 'Page 1') has no filter limiting years, while the date table extends to 2031."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-13#1"
+          },
+          "ruleIndex": 22
+        },
+        {
+          "ruleId": "IN-13",
+          "level": "warning",
+          "message": {
+            "text": "Slicer on 'Calendar'[Year] (page 'Duplicate of Page 1') has no filter limiting years, while the date table extends to 2031."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/slicerYearB/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 26
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState.Values.projections[0].field.Column"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Calendar.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "date table definition"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "IN-13|Defects.Report/definition/pages/page2/visuals/slicerYearB/visual.json|Slicer on 'Calendar'[Year] (page 'Duplicate of Page 1') has no filter limiting years, while the date table extends to 20"
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "interaction",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "IN-13#2"
+          },
+          "ruleIndex": 22
+        },
+        {
+          "ruleId": "MOD-01",
+          "level": "warning",
+          "message": {
+            "text": "Relationship Orders.ProductKey -> Product.ProductKey filters in both directions."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/relationships.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              },
+              "message": {
+                "text": "crossFilteringBehavior: bothDirections"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-01|Defects.SemanticModel/definition/relationships.tmdl|Relationship Orders.ProductKey -> Product.ProductKey filters in both directions."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "MOD-01#1"
+          },
+          "ruleIndex": 24
+        },
+        {
+          "ruleId": "MOD-03",
+          "level": "warning",
+          "message": {
+            "text": "Inactive relationship Orders.ShipDate -> Calendar.Date is not activated by any USERELATIONSHIP call."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/relationships.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              },
+              "message": {
+                "text": "isActive: false"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-03|Defects.SemanticModel/definition/relationships.tmdl|Inactive relationship Orders.ShipDate -> Calendar.Date is not activated by any USERELATIONSHIP call."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "defect",
+            "findingId": "MOD-03#1"
+          },
+          "ruleIndex": 26
+        },
+        {
+          "ruleId": "PERF-01",
+          "level": "warning",
+          "message": {
+            "text": "Page 'Page 1' has 16 data-bound visuals (threshold 12)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/page.json",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "PERF-01|Defects.Report/definition/pages/page1/page.json|Page 'Page 1' has 16 data-bound visuals (threshold 12)."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "performance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "PERF-01#1"
+          },
+          "ruleIndex": 33
+        },
+        {
+          "ruleId": "ST-01",
+          "level": "warning",
+          "message": {
+            "text": "Page 'Page 1' has a default name."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/page.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              },
+              "message": {
+                "text": "$.displayName"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "ST-01|Defects.Report/definition/pages/page1/page.json|Page 'Page 1' has a default name."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "storytelling",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "ST-01#1"
+          },
+          "ruleIndex": 35
+        },
+        {
+          "ruleId": "ST-01",
+          "level": "warning",
+          "message": {
+            "text": "Page 'Duplicate of Page 1' has a default name."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/page.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              },
+              "message": {
+                "text": "$.displayName"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "ST-01|Defects.Report/definition/pages/page2/page.json|Page 'Duplicate of Page 1' has a default name."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "storytelling",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "ST-01#2"
+          },
+          "ruleIndex": 35
+        },
+        {
+          "ruleId": "ST-05",
+          "level": "warning",
+          "message": {
+            "text": "Page 'Scratch' is hidden, is not a drillthrough or tooltip page, and no button or bookmark references it."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/scratch/page.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              },
+              "message": {
+                "text": "$.visibility"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "ST-05|Defects.Report/definition/pages/scratch/page.json|Page 'Scratch' is hidden, is not a drillthrough or tooltip page, and no button or bookmark references it."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "storytelling",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "ST-05#1"
+          },
+          "ruleIndex": 36
+        },
+        {
+          "ruleId": "VD-02",
+          "level": "warning",
+          "message": {
+            "text": "Gauge on page 'Duplicate of Page 1' has no target value."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/gauge/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "VD-02|Defects.Report/definition/pages/page2/visuals/gauge/visual.json|Gauge on page 'Duplicate of Page 1' has no target value."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "visual-design",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "VD-02#1"
+          },
+          "ruleIndex": 38
+        },
+        {
+          "ruleId": "VD-10",
+          "level": "warning",
+          "message": {
+            "text": "A card on page 'Page 1' extends outside the 1280x720 canvas (x=1200, y=400, w=200, h=100)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/windowCard/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              },
+              "message": {
+                "text": "$.position"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "VD-10|Defects.Report/definition/pages/page1/visuals/windowCard/visual.json|A card on page 'Page 1' extends outside the 1280x720 canvas (x=1200, y=400, w=200, h=100)."
+          },
+          "properties": {
+            "severity": "Medium",
+            "pillar": "visual-design",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "VD-10#1"
+          },
+          "ruleIndex": 40
+        },
+        {
+          "ruleId": "A11Y-04",
+          "level": "note",
+          "message": {
+            "text": "Page 'Page 1': tab order disagrees with reading order for 56% of visual pairs (tolerance 40%, row band 40px)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card11/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              },
+              "message": {
+                "text": "$.position.tabOrder first in tab order: card at x=950, y=260"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "A11Y-04|Defects.Report/definition/pages/page1/visuals/card11/visual.json|Page 'Page 1': tab order disagrees with reading order for 56% of visual pairs (tolerance 40%, row band 40px)."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "accessibility",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "A11Y-04#1"
+          },
+          "ruleIndex": 1
+        },
+        {
+          "ruleId": "DAX-04",
+          "level": "note",
+          "message": {
+            "text": "Table 'Orders' has 1 measure(s) that turn BLANK into 0 via DIVIDE(..., ..., 0): Margin Pct."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 18
+                }
+              },
+              "message": {
+                "text": "Margin Pct"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "DAX-04|Defects.SemanticModel/definition/tables/Orders.tmdl|Table 'Orders' has 1 measure(s) that turn BLANK into 0 via DIVIDE(..., ..., 0): Margin Pct."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "dax",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "DAX-04#1"
+          },
+          "ruleIndex": 8
+        },
+        {
+          "ruleId": "DAX-08",
+          "level": "note",
+          "message": {
+            "text": "A measure expression contains a TODO/FIXME/HACK marker."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "DAX-08|Defects.SemanticModel/definition/tables/Orders.tmdl|A measure expression contains a TODO/FIXME/HACK marker."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "dax",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "DAX-08#1"
+          },
+          "ruleIndex": 10
+        },
+        {
+          "ruleId": "GOV-02",
+          "level": "note",
+          "message": {
+            "text": "1 description(s) are longer than 200 characters."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6
+                }
+              },
+              "message": {
+                "text": "Units (251 chars)"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "GOV-02|Defects.SemanticModel/definition/tables/Orders.tmdl|1 description(s) are longer than 200 characters."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "governance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "GOV-02#1"
+          },
+          "ruleIndex": 12
+        },
+        {
+          "ruleId": "MOD-02",
+          "level": "note",
+          "message": {
+            "text": "Relationship Product.ProductKey -> Product Extra.ProductKey is one-to-one."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/relationships.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-02|Defects.SemanticModel/definition/relationships.tmdl|Relationship Product.ProductKey -> Product Extra.ProductKey is one-to-one."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "MOD-02#1"
+          },
+          "ruleIndex": 25
+        },
+        {
+          "ruleId": "MOD-05",
+          "level": "note",
+          "message": {
+            "text": "The Auto date/time option is on (model annotation), although no LocalDateTable table exists yet; new date columns will get one."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/model.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              },
+              "message": {
+                "text": "__PBI_TimeIntelligenceEnabled = 1"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-05|Defects.SemanticModel/definition/model.tmdl|The Auto date/time option is on (model annotation), although no LocalDateTable table exists yet; new date columns will g"
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "MOD-05#1"
+          },
+          "ruleIndex": 28
+        },
+        {
+          "ruleId": "MOD-07",
+          "level": "note",
+          "message": {
+            "text": "Table 'Orders' has 1 visible foreign-key column(s): OrderDate."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 49
+                }
+              },
+              "message": {
+                "text": "OrderDate"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-07|Defects.SemanticModel/definition/tables/Orders.tmdl|Table 'Orders' has 1 visible foreign-key column(s): OrderDate."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "MOD-07#1"
+          },
+          "ruleIndex": 29
+        },
+        {
+          "ruleId": "MOD-08",
+          "level": "note",
+          "message": {
+            "text": "Table 'Product' has 1 double (floating-point) column(s): Weight."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              },
+              "message": {
+                "text": "Weight"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-08|Defects.SemanticModel/definition/tables/Product.tmdl|Table 'Product' has 1 double (floating-point) column(s): Weight."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "MOD-08#1"
+          },
+          "ruleIndex": 30
+        },
+        {
+          "ruleId": "MOD-09",
+          "level": "note",
+          "message": {
+            "text": "model.tmdl does not set discourageImplicitMeasures."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/model.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-09|Defects.SemanticModel/definition/model.tmdl|model.tmdl does not set discourageImplicitMeasures."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "MOD-09#1"
+          },
+          "ruleIndex": 31
+        },
+        {
+          "ruleId": "MOD-10",
+          "level": "note",
+          "message": {
+            "text": "Table 'Orders' has 1 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: measure Orphan Measure. Other reports, Excel or paginated reports bound to the same model may use them; pass --external-usage to allowlist those."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Orders.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 46
+                }
+              },
+              "message": {
+                "text": "measure Orphan Measure"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-10|Defects.SemanticModel/definition/tables/Orders.tmdl|Table 'Orders' has 1 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: measure Orpha"
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "MOD-10#1"
+          },
+          "ruleIndex": 32
+        },
+        {
+          "ruleId": "MOD-10",
+          "level": "note",
+          "message": {
+            "text": "Table 'Product' has 2 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: column Weight, column Unused Attr. Other reports, Excel or paginated reports bound to the same model may use them; pass --external-usage to allowlist those."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              },
+              "message": {
+                "text": "column Weight"
+              }
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              },
+              "message": {
+                "text": "column Unused Attr"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-10|Defects.SemanticModel/definition/tables/Product.tmdl|Table 'Product' has 2 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: column Weigh"
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "MOD-10#2"
+          },
+          "ruleIndex": 32
+        },
+        {
+          "ruleId": "MOD-10",
+          "level": "note",
+          "message": {
+            "text": "Table 'Product Extra' has 1 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: column Notes. Other reports, Excel or paginated reports bound to the same model may use them; pass --external-usage to allowlist those."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.SemanticModel/definition/tables/Product Extra.tmdl",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              },
+              "message": {
+                "text": "column Notes"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOD-10|Defects.SemanticModel/definition/tables/Product Extra.tmdl|Table 'Product Extra' has 1 object(s) not referenced by this report, any DAX, relationship, sort-by or hierarchy: column"
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "model",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "MOD-10#3"
+          },
+          "ruleIndex": 32
+        },
+        {
+          "ruleId": "PERF-02",
+          "level": "note",
+          "message": {
+            "text": "A tableEx on page 'Duplicate of Page 1' has 21 fields (threshold 20)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/wideTable/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              },
+              "message": {
+                "text": "$.visual.query.queryState"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "PERF-02|Defects.Report/definition/pages/page2/visuals/wideTable/visual.json|A tableEx on page 'Duplicate of Page 1' has 21 fields (threshold 20)."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "performance",
+            "confidence": "high",
+            "classification": "defect",
+            "findingId": "PERF-02#1"
+          },
+          "ruleIndex": 34
+        },
+        {
+          "ruleId": "VD-01",
+          "level": "note",
+          "message": {
+            "text": "Page 'Duplicate of Page 1' uses a pieChart; check the number of categories."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/pie/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              },
+              "message": {
+                "text": "$.visual.visualType"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "VD-01|Defects.Report/definition/pages/page2/visuals/pie/visual.json|Page 'Duplicate of Page 1' uses a pieChart; check the number of categories."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "visual-design",
+            "confidence": "medium",
+            "classification": "recommendation",
+            "findingId": "VD-01#1"
+          },
+          "ruleIndex": 37
+        },
+        {
+          "ruleId": "VD-06",
+          "level": "note",
+          "message": {
+            "text": "Page 'Page 1': 1 visual(s) use 1 hard-coded colour literal(s) that are not in the report theme."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page1/visuals/card00/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 67
+                }
+              },
+              "message": {
+                "text": "$.visual.objects.labels[0].properties.color.solid.color.expr.Literal.Value 1 off-theme literal(s): #FF0000"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "VD-06|Defects.Report/definition/pages/page1/visuals/card00/visual.json|Page 'Page 1': 1 visual(s) use 1 hard-coded colour literal(s) that are not in the report theme."
+          },
+          "properties": {
+            "severity": "Low",
+            "pillar": "visual-design",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "VD-06#1"
+          },
+          "ruleIndex": 39
+        },
+        {
+          "ruleId": "MOB-01",
+          "level": "note",
+          "message": {
+            "text": "No visual has a mobile layout (no mobile.json files)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "MOB-01|Defects.Report/definition/pages|No visual has a mobile layout (no mobile.json files)."
+          },
+          "properties": {
+            "severity": "Info",
+            "pillar": "mobile",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "MOB-01#1"
+          },
+          "ruleIndex": 23
+        },
+        {
+          "ruleId": "VD-06",
+          "level": "note",
+          "message": {
+            "text": "Page 'Duplicate of Page 1': 1 visual(s) hard-code 1 colour literal(s) that equal theme colours; they look right today but will not follow a theme change."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Defects.Report/definition/pages/page2/visuals/pulse/visual.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 92
+                }
+              },
+              "message": {
+                "text": "$.visual.objects.labels[0].properties.color.solid.color.expr.Literal.Value 1 literal(s) equal to theme colours"
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pbipAudit/v1": "VD-06|Defects.Report/definition/pages/page2/visuals/pulse/visual.json|Page 'Duplicate of Page 1': 1 visual(s) hard-code 1 colour literal(s) that equal theme colours; they look right today bu"
+          },
+          "properties": {
+            "severity": "Info",
+            "pillar": "visual-design",
+            "confidence": "high",
+            "classification": "recommendation",
+            "findingId": "VD-06#2"
+          },
+          "ruleIndex": 39
+        }
+      ],
+      "properties": {
+        "notAssessable": [
+          "MOD-06",
+          "MOD-12",
+          "PERF-04",
+          "PERF-05",
+          "GOV-12"
+        ]
+      }
+    }
+  ]
+}

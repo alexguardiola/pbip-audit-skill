@@ -1,0 +1,21 @@
+{
+  "thresholds": {
+    "max_visuals": 12,
+    "max_fields": 20,
+    "tab_order_tolerance": 0.4,
+    "tab_order_row_band": 40,
+    "min_text_contrast": 4.5,
+    "min_graphic_contrast": 3.0,
+    "cvd_delta_e": 10,
+    "cvd_palette_size": 8
+  },
+  "disabled_rules": [],
+  "severity_overrides": {},
+  "naming": {
+    "locales": [
+      "en"
+    ],
+    "extra_default_page_patterns": []
+  },
+  "domain_rules": "domain-rules.md"
+}

@@ -1,0 +1,5 @@
+Loading model...
+Measure 'Orders'[Avg Price] violates rule "Use the DIVIDE function for division"
+::warning::Column 'Product'[Weight] violates rule "Avoid floating point data types"
+##vso[task.logissue type=error;]Table 'Product Extra' violates rule "Remove tables without measures"
+BPA analysis complete.

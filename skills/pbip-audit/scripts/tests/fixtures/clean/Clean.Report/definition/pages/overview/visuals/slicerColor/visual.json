@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "slicerColor",
+  "position": {
+    "x": 330,
+    "y": 150,
+    "z": 5000,
+    "width": 290,
+    "height": 90,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Product"
+                    }
+                  },
+                  "Property": "Color"
+                }
+              },
+              "queryRef": "Product.Color",
+              "nativeQueryRef": "Color"
+            }
+          ]
+        }
+      }
+    },
+    "syncGroup": {
+      "groupName": "Color",
+      "fieldChanges": true,
+      "filterChanges": true
+    }
+  }
+}

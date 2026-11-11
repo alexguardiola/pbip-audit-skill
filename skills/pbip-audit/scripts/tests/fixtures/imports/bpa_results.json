@@ -1,0 +1,30 @@
+[
+  {
+    "Category": "DAX Expressions",
+    "Rule Name": "Use the DIVIDE function for division",
+    "Severity": "Warning",
+    "Object Type": "Measure",
+    "Object Name": "Avg Price",
+    "Table Name": "Orders",
+    "Description": "Use DIVIDE instead of /.",
+    "URL": "https://learn.microsoft.com/dax/best-practices/dax-divide-function-operator"
+  },
+  {
+    "Category": "Performance",
+    "Rule Name": "Avoid floating point data types",
+    "Severity": "Error",
+    "Object Type": "Column",
+    "Object Name": "'Product'[Weight]",
+    "Description": "",
+    "URL": ""
+  },
+  {
+    "Category": "Maintenance",
+    "Rule Name": "Objects with no description",
+    "Severity": "Info",
+    "Object Type": "Table",
+    "Object Name": "Nowhere",
+    "Description": "",
+    "URL": ""
+  }
+]

@@ -1,0 +1,29 @@
+/// Product dimension.
+table Product
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	/// Product category.
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	/// Product colour.
+	column Color
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Color
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Source = #table({"ProductKey", "Category", "Color"}, {{1, "Bikes", "Red"}})
+				in
+				    Source

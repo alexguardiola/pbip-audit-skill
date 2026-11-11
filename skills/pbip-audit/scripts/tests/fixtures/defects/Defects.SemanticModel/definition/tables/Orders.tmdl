@@ -1,0 +1,76 @@
+table Orders
+
+	measure Revenue = SUM(Orders[Amount])
+
+	/// Units sold in the current filter context. Units sold in the current filter context. Units sold in the current filter context. Units sold in the current filter context. Units sold in the current filter context. Units sold in the current filter context.
+	measure Units = SUM(Orders[Quantity])
+		formatString: #,0
+
+	/// Average price.
+	measure 'Avg Price' = [Revenue] / [Units]
+		formatString: #,0.00
+
+	/// Ratio with an error trap.
+	measure 'Safe Ratio' = IFERROR(DIVIDE([Revenue], [Units]), BLANK())
+		formatString: 0.00
+
+	/// Ratio that turns blanks into zero.
+	measure 'Margin Pct' = DIVIDE([Revenue], [Units], 0)
+		formatString: 0.0%
+
+	/// Work in progress.
+	measure Draft =
+			// TODO replace with the real rule
+			[Revenue] * 2
+		formatString: #,0
+
+	/// Revenue for the prior year.
+	measure 'Revenue PY' = CALCULATE([Revenue], SAMEPERIODLASTYEAR('Calendar'[Date]))
+		formatString: #,0
+
+	/// Revenue shown on the first page.
+	measure 'Recent Revenue' =
+			CALCULATE(
+			    [Revenue],
+			    REMOVEFILTERS('Calendar'),
+			    DATESBETWEEN('Calendar'[Date], TODAY() - 90, TODAY())
+			)
+		formatString: #,0
+
+	/// Revenue of the rolling 3 months up to today (documented window).
+	measure 'Revenue Pulse' =
+			CALCULATE([Revenue], DATESINPERIOD('Calendar'[Date], TODAY(), -3, MONTH))
+		formatString: #,0
+
+	/// Nobody uses this.
+	measure 'Orphan Measure' = 1
+		formatString: 0
+
+	column OrderDate
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+	column ShipDate
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: ShipDate
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column Amount
+		dataType: decimal
+		isHidden
+		summarizeBy: none
+		sourceColumn: Amount
+
+	column Quantity
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Quantity

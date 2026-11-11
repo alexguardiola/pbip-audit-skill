@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU10",
+      "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "BrandTheme.json",
+      "type": "RegisteredResources"
+    }
+  },
+  "resourcePackages": [
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "BrandTheme.json",
+          "path": "BrandTheme.json",
+          "type": "CustomTheme"
+        }
+      ]
+    }
+  ]
+}

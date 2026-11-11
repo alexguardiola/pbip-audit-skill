@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Python 3.8 is not available on ubuntu-24.04 runners; ubuntu-22.04 still provides it.
+        os: [ubuntu-22.04, windows-latest]
+        python: ["3.8", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit tests
+        run: python -m unittest discover -s skills/pbip-audit/scripts/tests -v
+      - name: Pillar docs in sync with the catalog
+        run: python skills/pbip-audit/scripts/render_catalog.py --check
+      - name: Example outputs are reproducible
+        run: |
+          python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --as-of-year 2026 --format json --out findings.json
+          python skills/pbip-audit/scripts/validate_findings.py findings.json
+          python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --as-of-year 2026 --format sarif --out pbip-audit.sarif

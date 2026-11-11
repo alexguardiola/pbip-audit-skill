@@ -1,0 +1,15 @@
+table Calendar
+
+	column Date
+		dataType: dateTime
+		isKey
+		summarizeBy: none
+		sourceColumn: [Date]
+
+	column Year = YEAR('Calendar'[Date])
+		dataType: int64
+		summarizeBy: none
+
+	partition Calendar = calculated
+		mode: import
+		source = CALENDAR(DATE(2020, 1, 1), DATE(2031, 12, 31))

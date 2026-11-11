@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# audit outputs never belong in the skill repository
+findings*.json
+scan*.json
+REPORT.md
+/out/
+
+# Power BI per-user files, in case a real project is dropped here by mistake
+.pbi/
+localSettings.json
+cache.abf
+
+/pbip-audit.sarif

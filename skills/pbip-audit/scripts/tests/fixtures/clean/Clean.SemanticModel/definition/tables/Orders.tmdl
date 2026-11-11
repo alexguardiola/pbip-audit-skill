@@ -1,0 +1,60 @@
+/// Order lines.
+table Orders
+
+	/// Revenue of the order lines in context.
+	measure Revenue = SUM(Orders[Amount])
+		formatString: #,0
+		displayFolder: Sales
+
+	/// Units sold.
+	measure Units = SUM(Orders[Quantity])
+		formatString: #,0
+
+	/// Revenue per unit.
+	measure 'Avg Price' = DIVIDE([Revenue], [Units])
+		formatString: #,0.00
+
+	/// Revenue of the same period one year earlier.
+	measure 'Revenue PY' = CALCULATE([Revenue], SAMEPERIODLASTYEAR('Calendar'[Date]))
+		formatString: #,0
+
+	/// Revenue of the last 12 months up to today; ignores the date selection.
+	measure 'Revenue Last 12M' =
+			CALCULATE(
+			    [Revenue],
+			    REMOVEFILTERS('Calendar'),
+			    DATESINPERIOD('Calendar'[Date], TODAY(), -12, MONTH)
+			)
+		formatString: #,0
+
+	column OrderDate
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column Amount
+		dataType: decimal
+		isHidden
+		summarizeBy: none
+		sourceColumn: Amount
+
+	column Quantity
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Quantity
+
+	partition Orders = m
+		mode: import
+		source =
+				let
+				    Source = #table({"OrderDate", "ProductKey", "Amount", "Quantity"}, {{#date(2024, 1, 1), 1, 10, 1}})
+				in
+				    Source
