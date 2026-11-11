@@ -196,7 +196,7 @@ def to_sarif(result: Dict[str, Any], path_prefix: str = "") -> Dict[str, Any]:
     """SARIF 2.1.0 for GitHub code scanning. ``path_prefix`` is prepended to evidence
     paths (which are relative to the folder holding the .pbip) so that they become
     relative to the repository root."""
-    prefix = path_prefix.strip("/").replace("\\", "/")
+    prefix = path_prefix.replace("\\", "/").strip("/")
     prefix = prefix + "/" if prefix else ""
     findings = [f for f in result["findings"] if f.get("status") != "false_positive"]
     used = sorted({f["rule_id"] for f in findings if f["rule_id"] in BY_ID})

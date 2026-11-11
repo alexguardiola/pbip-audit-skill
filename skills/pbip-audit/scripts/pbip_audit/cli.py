@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -19,7 +20,7 @@ from .catalog import BY_ID, PILLARS, RULES, SEVERITIES
 from .checks import Options, apply_policy, run_checks
 from .config import ConfigError, find_config, load_config, load_external_usage, page_name_patterns
 from .output import scores, to_markdown, to_sarif
-from .project import DiscoveryError, load_project
+from .project import DiscoveryError, find_pbip, load_project
 
 SCHEMA_VERSION = "1.1"
 
@@ -141,6 +142,19 @@ def _options_from(args: argparse.Namespace, cfg: Dict[str, Any]) -> Options:
     return o
 
 
+def auto_path_prefix(target: Path) -> str:
+    """Folder holding the .pbip, relative to the current directory (normally the repository root)."""
+    try:
+        rel = os.path.relpath(str(find_pbip(target).parent), os.getcwd())
+    except ValueError:
+        rel = ".."
+    rel = Path(rel).as_posix()
+    if rel == ".." or rel.startswith("../"):
+        print("warning: --path-prefix auto: the project is outside the current directory; using no prefix", file=sys.stderr)
+        return ""
+    return "" if rel == "." else rel
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="pbip-audit", description="Offline deterministic audit of a Power BI PBIP project.")
     ap.add_argument("--version", action="version", version="pbip-audit " + __version__)
@@ -158,7 +172,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--validate-schemas", action="store_true", help="Check each PBIR file against the cached top-level shape of its declared $schema")
     ap.add_argument("--import-bpa", action="append", default=[], help="Tabular Editor BPA results to merge (repeatable)")
     ap.add_argument("--import-fabinspector", action="append", default=[], help="Fab Inspector JSON results to merge (repeatable)")
-    ap.add_argument("--path-prefix", default="", help="SARIF: prefix for evidence paths so they are relative to the repository root")
+    ap.add_argument("--path-prefix", default="", help="SARIF: prefix for evidence paths so they are relative to the repository root; "
+                    "'auto' uses the project folder relative to the current directory")
     ap.add_argument("--fail-on", choices=SEVERITIES, help="Exit with code 2 when a finding at or above this severity exists")
     args = ap.parse_args(argv)
 
@@ -193,7 +208,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.format == "json":
         text = json.dumps(result, indent=2, ensure_ascii=False)
     elif args.format == "sarif":
-        text = json.dumps(to_sarif(result, args.path_prefix), indent=2, ensure_ascii=False)
+        prefix = auto_path_prefix(target) if args.path_prefix == "auto" else args.path_prefix
+        text = json.dumps(to_sarif(result, prefix), indent=2, ensure_ascii=False)
     else:
         text = to_markdown(result)
     if args.out:

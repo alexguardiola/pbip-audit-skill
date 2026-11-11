@@ -8,10 +8,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - **Claude Code plugin.** `/plugin marketplace add alexguardiola/pbip-audit-skill` then `/plugin install pbip-audit@pbip-audit-skill` installs the skill; manifests in `.claude-plugin/`.
 - **Installable CLI.** `pipx install git+https://github.com/alexguardiola/pbip-audit-skill` gives a `pbip-audit` command (still no runtime dependencies); `python -m pbip_audit` works from `scripts/`. New `--version` flag.
+- **GitHub Action.** `uses: alexguardiola/pbip-audit-skill@v0.3.0` scans a project, writes the Markdown report to the job summary, uploads SARIF to code scanning and can fail the job with `fail-on`.
+- **pre-commit hook** `pbip-audit` (`.pre-commit-hooks.yaml`).
+- `--path-prefix auto` makes SARIF paths relative to the current directory, so CI does not need to know where the project sits.
+- CI runs on Linux (Python 3.8 to 3.14), Windows and macOS, checks that the example SARIF is reproducible, installs the built wheel, and runs the Action on the fixtures.
 
 ### Changed
 
 - The scanner's command line moved from `scripts/scan.py` into `pbip_audit/cli.py`; `scan.py` is now a thin wrapper and keeps the same options, output and exit codes.
+
+### Fixed
+
+- A SARIF `--path-prefix` written with Windows separators and a trailing backslash (`reports\Sales\`) produced URIs with a double slash.
 
 ## 0.2.0 - 2026-11-10 (pre-release, not published)
 

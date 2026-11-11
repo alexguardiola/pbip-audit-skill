@@ -1,0 +1,7 @@
+- id: pbip-audit
+  name: pbip-audit
+  description: Offline audit of a Power BI PBIP project. Pass the project path and a --fail-on severity in args.
+  entry: pbip-audit
+  language: python
+  pass_filenames: false
+  files: \.(pbip|pbir|pbism|tmdl|json)$

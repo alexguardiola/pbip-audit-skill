@@ -1,0 +1,103 @@
+name: PBIP audit
+description: Offline audit of a Power BI PBIP project (TMDL model + PBIR report) with file and line evidence, as SARIF for code scanning.
+author: Àlex Guardiola
+branding:
+  icon: check-square
+  color: orange
+
+inputs:
+  path:
+    description: Path to the .pbip file, or a folder that contains exactly one .pbip.
+    required: true
+  fail-on:
+    description: Fail the step when a finding at or above this severity exists (Critical, High, Medium, Low, Info). Empty never fails.
+    required: false
+    default: ""
+  config:
+    description: Path to a .pbip-audit.json. Empty uses the nearest one at or above the project.
+    required: false
+    default: ""
+  args:
+    description: Extra scanner options, for example "--validate-schemas --external-usage usage.txt".
+    required: false
+    default: ""
+  upload-sarif:
+    description: Upload the SARIF file to GitHub code scanning (needs security-events write permission).
+    required: false
+    default: "true"
+  sarif-file:
+    description: Where to write the SARIF file.
+    required: false
+    default: pbip-audit.sarif
+  category:
+    description: Code scanning category, to keep several projects apart.
+    required: false
+    default: pbip-audit
+
+outputs:
+  findings:
+    description: Number of findings (false positives excluded by the scanner are not counted).
+    value: ${{ steps.scan.outputs.findings }}
+  sarif-file:
+    description: Path of the SARIF file.
+    value: ${{ steps.scan.outputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - id: scan
+      name: Scan
+      shell: bash
+      env:
+        TARGET: ${{ inputs.path }}
+        CONFIG: ${{ inputs.config }}
+        EXTRA: ${{ inputs.args }}
+        SARIF: ${{ inputs.sarif-file }}
+      run: |
+        set -uo pipefail
+        PY="$(command -v python3 || command -v python)"
+        SCAN="$GITHUB_ACTION_PATH/skills/pbip-audit/scripts/scan.py"
+        opts=()
+        if [ -n "$CONFIG" ]; then opts+=(--config "$CONFIG"); fi
+        # Word splitting is intended: EXTRA holds several options.
+        # shellcheck disable=SC2206
+        if [ -n "$EXTRA" ]; then opts+=($EXTRA); fi
+        JSON="$RUNNER_TEMP/pbip-audit.json"
+        "$PY" "$SCAN" "$TARGET" ${opts[@]+"${opts[@]}"} --format json --out "$JSON" || exit 1
+        "$PY" "$SCAN" "$TARGET" ${opts[@]+"${opts[@]}"} --format sarif --path-prefix auto --out "$SARIF" || exit 1
+        "$PY" "$SCAN" "$TARGET" ${opts[@]+"${opts[@]}"} --format md >> "$GITHUB_STEP_SUMMARY" || exit 1
+        total="$("$PY" -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["summary"]["total"])' "$JSON")"
+        echo "findings=$total" >> "$GITHUB_OUTPUT"
+        echo "sarif-file=$SARIF" >> "$GITHUB_OUTPUT"
+        echo "pbip-audit: $total finding(s); SARIF in $SARIF"
+
+    - name: Upload SARIF
+      if: inputs.upload-sarif == 'true'
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: ${{ inputs.category }}
+
+    - name: Enforce fail-on
+      if: inputs.fail-on != ''
+      shell: bash
+      env:
+        TARGET: ${{ inputs.path }}
+        CONFIG: ${{ inputs.config }}
+        EXTRA: ${{ inputs.args }}
+        FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        set -uo pipefail
+        PY="$(command -v python3 || command -v python)"
+        SCAN="$GITHUB_ACTION_PATH/skills/pbip-audit/scripts/scan.py"
+        opts=()
+        if [ -n "$CONFIG" ]; then opts+=(--config "$CONFIG"); fi
+        # shellcheck disable=SC2206
+        if [ -n "$EXTRA" ]; then opts+=($EXTRA); fi
+        "$PY" "$SCAN" "$TARGET" ${opts[@]+"${opts[@]}"} --fail-on "$FAIL_ON" --out "$RUNNER_TEMP/pbip-audit-gate.json"
+        code=$?
+        if [ "$code" -eq 2 ]; then
+          echo "::error::pbip-audit found findings at or above $FAIL_ON. See the job summary or the code scanning alerts."
+          exit 1
+        fi
+        exit "$code"

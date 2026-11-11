@@ -15,12 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Python 3.8 is not available on ubuntu-24.04 runners; ubuntu-22.04 still provides it.
-        os: [ubuntu-22.04, windows-latest]
-        python: ["3.8", "3.12"]
+        os: [ubuntu-24.04]
+        python: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - { os: windows-latest, python: "3.8" }
+          - { os: windows-latest, python: "3.14" }
+          # macOS runners are arm64; the oldest arm64 build available is 3.10.
+          - { os: macos-latest, python: "3.10" }
+          - { os: macos-latest, python: "3.14" }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
       - name: Unit tests
@@ -28,7 +33,59 @@ jobs:
       - name: Pillar docs in sync with the catalog
         run: python skills/pbip-audit/scripts/render_catalog.py --check
       - name: Example outputs are reproducible
+        shell: bash
         run: |
           python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --as-of-year 2026 --format json --out findings.json
           python skills/pbip-audit/scripts/validate_findings.py findings.json
           python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --as-of-year 2026 --format sarif --out pbip-audit.sarif
+          diff --strip-trailing-cr <(sed -E '/"(semanticV|v)ersion": "/d' examples/defects-report.sarif) <(sed -E '/"(semanticV|v)ersion": "/d' pbip-audit.sarif)
+
+  package:
+    name: Wheel installs and runs
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.8"
+      - name: Build and install in a clean virtual environment
+        run: |
+          python -m pip install --upgrade build
+          python -m build --outdir dist .
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/venv/bin/pbip-audit --version
+          /tmp/venv/bin/pbip-audit "$GITHUB_WORKSPACE/skills/pbip-audit/scripts/tests/fixtures/defects" --format md --as-of-year 2026 > report.md
+          grep -q "Executive summary" report.md
+
+  action:
+    name: Action on the fixtures
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Clean project passes fail-on Low
+        id: clean
+        uses: ./
+        with:
+          path: skills/pbip-audit/scripts/tests/fixtures/clean
+          fail-on: Low
+          upload-sarif: "false"
+          args: --as-of-year 2026
+      - name: Defects project fails fail-on Critical
+        id: defects
+        continue-on-error: true
+        uses: ./
+        with:
+          path: skills/pbip-audit/scripts/tests/fixtures/defects
+          fail-on: Critical
+          upload-sarif: "false"
+          sarif-file: defects.sarif
+          args: --as-of-year 2026
+      - name: Check outcomes
+        shell: bash
+        run: |
+          test "${{ steps.clean.outputs.findings }}" = "0"
+          test "${{ steps.defects.outcome }}" = "failure"
+          test "${{ steps.defects.outputs.findings }}" -gt 0
+          grep -q '"uri": "skills/pbip-audit/scripts/tests/fixtures/defects/' defects.sarif

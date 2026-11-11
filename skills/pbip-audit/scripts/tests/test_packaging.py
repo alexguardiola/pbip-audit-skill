@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import subprocess
 import sys
@@ -12,6 +13,7 @@ FIX = HERE / "fixtures"
 sys.path.insert(0, str(SCRIPTS))
 
 from pbip_audit import __version__  # noqa: E402
+import scan  # noqa: E402
 
 
 def run_module(*args):
@@ -35,6 +37,32 @@ class ModuleEntryPoint(unittest.TestCase):
                              capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertEqual(out.stdout.strip(), "pbip-audit " + __version__)
+
+
+class SarifPathPrefix(unittest.TestCase):
+    def sarif_uris(self, *extra):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out.sarif"
+            code = scan.main([str(FIX / "defects"), "--as-of-year", "2026", "--format", "sarif", "--out", str(out), *extra])
+            self.assertEqual(code, 0)
+            doc = json.loads(out.read_text(encoding="utf-8"))
+        return [loc["physicalLocation"]["artifactLocation"]["uri"]
+                for res in doc["runs"][0]["results"] for loc in res.get("locations", [])]
+
+    def test_auto_prefix_is_the_project_folder_relative_to_cwd(self):
+        expected = Path(os.path.relpath(str(FIX / "defects"), os.getcwd())).as_posix() + "/"
+        uris = self.sarif_uris("--path-prefix", "auto")
+        self.assertTrue(uris)
+        self.assertTrue(all(u.startswith(expected) for u in uris), uris[:3])
+
+    def test_windows_prefix_with_trailing_backslash(self):
+        uris = self.sarif_uris("--path-prefix", "reports\\Sales\\")
+        self.assertTrue(all(u.startswith("reports/Sales/") and "//" not in u for u in uris), uris[:3])
+
+    def test_default_prefix_unchanged(self):
+        uris = self.sarif_uris()
+        self.assertTrue(any(u.startswith("Defects.") for u in uris), uris[:3])
 
 
 class Manifests(unittest.TestCase):
