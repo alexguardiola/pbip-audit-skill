@@ -1,0 +1,15 @@
+{
+  "name": "pbip-audit-skill",
+  "description": "Agent skill and stdlib scanner for offline Power BI PBIP audits.",
+  "owner": {
+    "name": "Àlex Guardiola",
+    "url": "https://github.com/alexguardiola"
+  },
+  "plugins": [
+    {
+      "name": "pbip-audit",
+      "source": "./",
+      "description": "Offline audit of Power BI PBIP projects (TMDL + PBIR) with file and line evidence."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pbip-audit"
+dynamic = ["version"]
+description = "Offline audit of Power BI PBIP projects (TMDL model + PBIR report) from files only"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Àlex Guardiola" }]
+requires-python = ">=3.8"
+dependencies = []
+keywords = ["power-bi", "pbip", "pbir", "tmdl", "dax", "linter", "audit", "sarif", "accessibility", "agent-skill"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.urls]
+Homepage = "https://github.com/alexguardiola/pbip-audit-skill"
+Issues = "https://github.com/alexguardiola/pbip-audit-skill/issues"
+Changelog = "https://github.com/alexguardiola/pbip-audit-skill/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pbip-audit = "pbip_audit.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "skills/pbip-audit/scripts" }
+packages = ["pbip_audit"]
+
+[tool.setuptools.package-data]
+pbip_audit = ["schema_cache.json"]
+
+[tool.setuptools.dynamic]
+version = { attr = "pbip_audit.__version__" }

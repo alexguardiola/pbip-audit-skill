@@ -1,0 +1,10 @@
+{
+  "name": "pbip-audit",
+  "version": "0.3.0",
+  "description": "Offline audit of Power BI PBIP projects: broken bindings, slicer sync, DAX, accessibility and governance findings with file and line evidence. Files only, nothing leaves your machine.",
+  "author": { "name": "Àlex Guardiola", "url": "https://alexguardiola.dev" },
+  "homepage": "https://github.com/alexguardiola/pbip-audit-skill",
+  "repository": "https://github.com/alexguardiola/pbip-audit-skill",
+  "license": "MIT",
+  "keywords": ["power-bi", "pbip", "pbir", "tmdl", "dax", "audit", "accessibility", "sarif"]
+}

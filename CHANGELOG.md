@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- **Claude Code plugin.** `/plugin marketplace add alexguardiola/pbip-audit-skill` then `/plugin install pbip-audit@pbip-audit-skill` installs the skill; manifests in `.claude-plugin/`.
+- **Installable CLI.** `pipx install git+https://github.com/alexguardiola/pbip-audit-skill` gives a `pbip-audit` command (still no runtime dependencies); `python -m pbip_audit` works from `scripts/`. New `--version` flag.
+
+### Changed
+
+- The scanner's command line moved from `scripts/scan.py` into `pbip_audit/cli.py`; `scan.py` is now a thin wrapper and keeps the same options, output and exit codes.
+
 ## 0.2.0 - 2026-11-10 (pre-release, not published)
 
 ### Added
