@@ -17,7 +17,7 @@ cd pbip-audit-skill
 python -m unittest discover -s skills/pbip-audit/scripts/tests
 ```
 
-That is the whole setup. CI runs the same command on Python 3.8 and 3.12, on Ubuntu and Windows.
+That is the whole setup. CI runs the same command on Python 3.8 to 3.14 on Linux, plus Windows and macOS, and also builds the wheel and runs the GitHub Action against the fixtures.
 
 ## Adding a rule
 

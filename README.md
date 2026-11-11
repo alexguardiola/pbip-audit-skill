@@ -1,64 +1,171 @@
-# pbip-audit-skill
+<p align="center">
+  <img src="docs/hero.png" width="100%" alt="Terminal output of pbip-audit on a synthetic Power BI project: 51 findings (3 Critical, 10 High, 21 Medium, 15 Low, 2 Info), each with a rule id, a message and a file:line, such as a missing measure in a visual.json and a password-like value in a TMDL file. A side panel shows the score per pillar, 70 out of 100 overall, with Model and binding at 14.">
+</p>
 
-[![tests](https://github.com/alexguardiola/pbip-audit-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/alexguardiola/pbip-audit-skill/actions/workflows/tests.yml)
-![python](https://img.shields.io/badge/python-3.8%2B-blue)
-![dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+<h3 align="center">Find what is broken in a Power BI project before your users do, from the files alone.</h3>
 
-An agent skill (Claude Code and other skill-aware agents) that audits **Power BI PBIP projects** from files only: the TMDL semantic model and the PBIR report, cross-checked against each other. No Power BI Desktop, Service, Fabric workspace, XMLA endpoint or admin role is needed, and nothing is sent anywhere.
+<p align="center">
+  <a href="https://github.com/alexguardiola/pbip-audit-skill/actions/workflows/tests.yml"><img alt="tests" src="https://github.com/alexguardiola/pbip-audit-skill/actions/workflows/tests.yml/badge.svg"></a>
+  <img alt="Python 3.8+" src="https://img.shields.io/badge/python-3.8%2B-3776AB?style=flat-square">
+  <img alt="Dependencies: none" src="https://img.shields.io/badge/dependencies-none-2ea44f?style=flat-square">
+  <img alt="Runs offline" src="https://img.shields.io/badge/network-none-555?style=flat-square">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square"></a>
+</p>
 
-It combines:
+<p align="center">
+  <a href="#try-it-in-one-minute">Try it</a> · <a href="#install">Install</a> · <a href="#use-it-in-ci">CI</a> · <a href="#what-it-finds">What it finds</a> · <a href="#how-it-works">How it works</a> · <a href="#limitations">Limitations</a>
+</p>
 
-- a **deterministic scanner** (`scan.py`, Python 3.8+ standard library, no dependencies) that emits findings with exact file and line evidence, as JSON, Markdown or SARIF, and
-- a **written methodology** (`SKILL.md` and one reference file per pillar) that tells the agent how to apply judgement rules, keep false positives down, and report what cannot be checked offline.
+Someone renames a measure, and a visual three pages away turns into a grey box. Two slicers share a sync group but filter different fields. A year slicer offers 2031 because the date table runs that far. A theme colour fails contrast. None of this shows up until a person opens the report.
 
-Status: **v0.2**. 79 rules catalogued: 48 deterministic (all implemented in the scanner, including 2 that import other tools' results), 26 judgement, 5 runtime-only. See [CHANGELOG.md](CHANGELOG.md).
+**pbip-audit** reads a Power BI project saved as PBIP (the TMDL semantic model and the PBIR report) and checks one against the other. It is two things:
 
-## What it finds that others do not
+- a **scanner** (`pbip-audit`, Python 3.8+, standard library only) that emits findings with the exact file and line, as JSON, Markdown or SARIF;
+- an **agent skill** (`SKILL.md` plus one reference file per pillar) that tells Claude Code, or any agent that can read files and run Python, how to confirm each finding, apply the judgement rules and say what cannot be checked offline.
 
-The scanner builds one index of every model object and every report reference, and resolves the report theme. That makes it possible to detect, offline:
+No Power BI Desktop, Service, Fabric workspace, XMLA endpoint or admin role is needed. Nothing leaves your machine.
+
+Status: **v0.3**. 79 rules: 48 deterministic (all in the scanner), 26 judgement, 5 that need runtime data and are listed as not assessable. See the [CHANGELOG](CHANGELOG.md).
+
+## Try it in one minute
+
+The repository ships a synthetic project with seeded defects. You only need Python 3.8 or later.
+
+```bash
+git clone --branch v0.3.0 https://github.com/alexguardiola/pbip-audit-skill.git
+cd pbip-audit-skill
+python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --format md --out report.md
+```
+
+`report.md` starts with an executive summary (`51 deterministic finding(s): 3 Critical, 10 High, ...`), a score per pillar and then every finding with its evidence. The same output is committed in [examples/defects-report.md](examples/defects-report.md) and [examples/defects-report.sarif](examples/defects-report.sarif). Point it at your own `.pbip` file or project folder next.
+
+## Install
+
+Pick the way you work. All of them run the same scanner.
+
+### Claude Code plugin
+
+In a Claude Code session:
+
+```text
+/plugin marketplace add alexguardiola/pbip-audit-skill
+/plugin install pbip-audit@pbip-audit-skill
+```
+
+Then ask *"Audit the Power BI project in ./reports/Sales.pbip"*. Claude follows [`SKILL.md`](skills/pbip-audit/SKILL.md): reconnaissance, scanner run, judgement pillar by pillar, and a report written outside your project. The audit is read-only unless you ask for a fix.
+
+<details>
+<summary>Claude Code without the plugin system, and other agents</summary>
+
+Copy the skill folder by hand:
+
+```bash
+git clone https://github.com/alexguardiola/pbip-audit-skill.git
+cp -r pbip-audit-skill/skills/pbip-audit ~/.claude/skills/                    # all your projects
+cp -r pbip-audit-skill/skills/pbip-audit <your-repo>/.claude/skills/          # one repository, shared with your team
+```
+
+On Windows (PowerShell): `Copy-Item -Recurse pbip-audit-skill\skills\pbip-audit $HOME\.claude\skills\`
+
+Other agents (anything that can read files and run Python): point it at `skills/pbip-audit/SKILL.md` as instructions, for example in your rules file: "For Power BI audits, follow skills/pbip-audit/SKILL.md". Every other file is linked from there.
+
+</details>
+
+### Command line
+
+```bash
+pipx install git+https://github.com/alexguardiola/pbip-audit-skill@v0.3.0
+pbip-audit path/to/Project.pbip --format md --out report.md
+```
+
+`pip install` works too. There are no runtime dependencies. Without installing anything, `python skills/pbip-audit/scripts/scan.py` takes the same options.
+
+## Use it in CI
+
+### GitHub Action
+
+```yaml
+name: pbip-audit
+on: [pull_request]
+permissions:
+  contents: read
+  security-events: write   # to upload SARIF to code scanning
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: alexguardiola/pbip-audit-skill@v0.3.0
+        with:
+          path: reports/Sales        # a .pbip file, or a folder with one .pbip
+          fail-on: High              # optional: fail the job on High or Critical findings
+```
+
+The action writes the Markdown report to the job summary, uploads SARIF so findings appear as code scanning alerts on the right line, and exposes `findings` and `sarif-file` outputs. Inputs: `path`, `fail-on`, `config`, `args` (extra scanner options), `upload-sarif` (default `true`), `sarif-file`, `category`. Code scanning on private repositories needs GitHub Advanced Security; set `upload-sarif: "false"` without it.
+
+### pre-commit
+
+```yaml
+repos:
+  - repo: https://github.com/alexguardiola/pbip-audit-skill
+    rev: v0.3.0
+    hooks:
+      - id: pbip-audit
+        args: [reports/Sales, --fail-on, High, --format, md]   # the report shows only when the hook fails
+```
+
+### Any other CI
+
+```bash
+python skills/pbip-audit/scripts/scan.py reports/Sales --format sarif --path-prefix auto --out pbip-audit.sarif
+python skills/pbip-audit/scripts/scan.py reports/Sales --fail-on High --out findings.json   # exit code 2 on High or Critical
+```
+
+## Options
+
+| Option | What it does |
+|---|---|
+| `--format json\|md\|sarif` | Output format (default `json`). |
+| `--out FILE` | Write to a file instead of stdout. The only file the scanner ever writes. |
+| `--fail-on SEVERITY` | Exit code 2 when a finding at or above this severity exists. |
+| `--path-prefix PREFIX\|auto` | SARIF only: make paths relative to the repository root. `auto` uses the project folder relative to the current directory. |
+| `--validate-schemas` | Check each PBIR file against the cached top-level shape of its declared schema version (no network). |
+| `--external-usage FILE` | Objects used by other reports or tools, so MOD-10 does not call them unused. |
+| `--import-bpa FILE`, `--import-fabinspector FILE` | Merge Tabular Editor BPA or Fab Inspector results you already have. |
+| `--config FILE`, `--no-config` | Use or ignore `.pbip-audit.json` (thresholds, disabled rules, severity overrides, naming locales). |
+| `--version` | Print the version. |
+
+Everything about thresholds and the config file is in [CONFIGURATION.md](skills/pbip-audit/CONFIGURATION.md).
+
+## What it finds
+
+The scanner builds one index of every model object and every report reference, and resolves the report theme. That lets it detect, offline:
 
 - visuals, filters and bookmarks bound to fields that no longer exist (BIND-01, BIND-03);
 - slicer sync groups that mix different fields, or the same field split across groups (IN-03, IN-04);
 - rolling-window measures (TODAY() plus removed date filters) shown under titles that do not say so (IN-05);
 - year slicers that expose future years of a forecast calendar (IN-13);
 - objects unused by the report and by every DAX expression (MOD-10), with an allowlist for other consumers of the model;
+- password-like values in M code, reported by file and line without printing the value (GOV-09);
 - text below WCAG contrast after resolving base + custom theme and `ThemeDataColor` references (A11Y-05), and series colours that collapse under red-green colour-vision deficiency (A11Y-07);
 - PBIR files that no longer match the top-level shape of their declared schema version (GOV-17, opt-in).
 
-## Install
+## How it works
 
-The skill is the folder `skills/pbip-audit/`. Requirements: Python 3.8 or later on Windows, macOS or Linux. Nothing to `pip install`.
-
-**Claude Code, personal skill (all projects):**
-
-```bash
-git clone https://github.com/alexguardiola/pbip-audit-skill.git
-cp -r pbip-audit-skill/skills/pbip-audit ~/.claude/skills/
+```mermaid
+flowchart LR
+  P[".pbip project"] --> T["TMDL parser<br/>tables, measures, relationships"]
+  P --> R["PBIR loader<br/>pages, visuals, filters, bookmarks"]
+  R --> TH["Theme resolver<br/>base + custom, ThemeDataColor"]
+  T --> IX["Binding index<br/>report refs vs model objects"]
+  R --> IX
+  IX --> D["48 deterministic checks"]
+  TH --> D
+  D --> O["JSON · Markdown · SARIF<br/>file + line evidence"]
+  O --> A["Agent applies 26 judgement rules<br/>and confirms or rejects each finding"]
 ```
 
-On Windows (PowerShell): `Copy-Item -Recurse pbip-audit-skill\skills\pbip-audit $HOME\.claude\skills\`
-
-**Claude Code, project skill (one repository):** copy `skills/pbip-audit/` to `<your repo>/.claude/skills/pbip-audit/` and commit it, so everyone working in that repository gets it.
-
-Claude Code picks up skills when a session starts; ask *"Audit the Power BI project in ./reports/Example.pbip"* and it follows `SKILL.md`.
-
-**Other agents** (any agent that can read files and run Python): point it at `skills/pbip-audit/SKILL.md` as instructions, for example in your agent's rules or system prompt ("For Power BI audits follow skills/pbip-audit/SKILL.md"). All other files are linked from there.
-
-**Without an agent:** run the scanner directly (below) or in CI.
-
-## Quick start
-
-```bash
-python skills/pbip-audit/scripts/scan.py path/to/Project.pbip --format md --out scan.md
-python skills/pbip-audit/scripts/scan.py path/to/folder --format json --out findings.json
-python skills/pbip-audit/scripts/validate_findings.py findings.json
-python skills/pbip-audit/scripts/scan.py path/to/Project.pbip --format sarif --path-prefix reports/Project --out pbip-audit.sarif
-```
-
-Useful options: `--validate-schemas`, `--external-usage FILE`, `--import-bpa FILE`, `--import-fabinspector FILE`, `--config FILE`, `--fail-on High` (exit code 2, for CI). Thresholds, disabled rules, severity overrides and naming locales go in `.pbip-audit.json`. All of it is documented in [CONFIGURATION.md](skills/pbip-audit/CONFIGURATION.md).
-
-Sample output from the synthetic `defects` fixture: [examples/defects-report.md](examples/defects-report.md) and [examples/defects-report.sarif](examples/defects-report.sarif).
+Detection and judgement are kept apart on purpose. The scanner never guesses: it reports what the files prove, with a confidence level on heuristic rules. The agent reads the cited evidence, marks false positives with a reason, applies the judgement rules (storytelling, visual design, domain rules) and lists runtime-only checks under "Not assessable offline".
 
 ## Rule pillars
 
@@ -104,29 +211,40 @@ Where the others are stronger: BPA has a large, battle-tested model rule set and
 - **Adapters** for Tabular Editor BPA and Fab Inspector were written from documented formats and tested with synthetic samples only.
 - Judgement findings depend on the agent and the model running it; the deterministic scanner does not.
 
+
+## Security and privacy
+
+- The scanner reads files only, never opens a network connection, and writes nothing except `--out`. A report of any other write or network access is a security bug.
+- Audited projects are treated as untrusted input. Text inside them (descriptions, M code) is data, never instructions for the agent.
+- Secrets are reported by location only; their values are never printed.
+- Share only synthetic files in issues. See [SECURITY.md](SECURITY.md) for private vulnerability reporting.
+
 ## Repository layout
 
 ```
-README.md  LICENSE  CHANGELOG.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  SECURITY.md
-.github/   workflows/tests.yml, issue templates
-examples/  sample Markdown and SARIF output from the synthetic defects fixture
+.claude-plugin/     plugin.json and marketplace.json (Claude Code plugin)
+action.yml          GitHub Action
+.pre-commit-hooks.yaml
+pyproject.toml      packaging for the pbip-audit command (no runtime dependencies)
+docs/               README image
+examples/           sample Markdown and SARIF output from the synthetic defects project
 skills/pbip-audit/
-  SKILL.md                         entry point and workflow
+  SKILL.md                          entry point and workflow for the agent
   RECONNAISSANCE.md  FILE-MAP.md  VALIDATION-AND-REPORTING.md  CONFIGURATION.md
   MODEL.md  DAX.md  PERFORMANCE.md  GOVERNANCE-AND-AI-READINESS.md
   VISUAL-DESIGN.md  STORYTELLING.md  INTERACTION.md  ACCESSIBILITY.md  MOBILE.md
   domain-rules.example.md  pbip-audit.example.json  report-schema.json
   scripts/
     scan.py  validate_findings.py  render_catalog.py
-    pbip_audit/  catalog, TMDL parser, PBIR loader, JSON locator, theme, schemas, checks, adapters, outputs
-    tools/       refresh_schema_cache.py (maintainers, uses the network)
-    tests/       unittest suite + synthetic fixtures
+    pbip_audit/   cli, catalog, TMDL parser, PBIR loader, JSON locator, theme, schemas, checks, adapters, outputs
+    tools/        refresh_schema_cache.py (maintainers only, uses the network)
+    tests/        unittest suite and synthetic fixtures
 ```
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports about false positives are especially welcome; please use the issue template and include only synthetic snippets.
+False-positive reports with a minimal synthetic snippet are the most useful contribution, followed by new rules with a primary source. See [CONTRIBUTING.md](CONTRIBUTING.md); the whole development setup is `python -m unittest discover -s skills/pbip-audit/scripts/tests`.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Power BI, Microsoft Fabric and Tabular Editor are trademarks of their owners; this project is not affiliated with them.
