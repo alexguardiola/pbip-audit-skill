@@ -20,3 +20,8 @@ localSettings.json
 cache.abf
 
 /pbip-audit.sarif
+
+# packaging output
+build/
+dist/
+*.egg-info/

@@ -1,2 +1,0 @@
-[console_scripts]
-pbip-audit = pbip_audit.cli:main
