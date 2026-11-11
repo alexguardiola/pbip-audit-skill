@@ -1,6 +1,6 @@
 relationship rel_orders_date
-	fromColumn: Orders.OrderDate
-	toColumn: Calendar.Date
+	fromColumn: Orders.OrderDateKey
+	toColumn: Calendar.DateKey
 
 relationship rel_orders_ship
 	isActive: false

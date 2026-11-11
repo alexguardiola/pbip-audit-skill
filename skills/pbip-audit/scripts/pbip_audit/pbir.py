@@ -95,7 +95,8 @@ class Visual:
 
     @property
     def is_hidden(self) -> bool:
-        return bool(self.data.get("isHidden"))
+        """Hidden itself or through any enclosing group (parentGroupName chain)."""
+        return any(bool(v.data.get("isHidden")) for v in self.ancestors(include_self=True))
 
     @property
     def position(self) -> Dict[str, Any]:
@@ -104,6 +105,31 @@ class Visual:
     @property
     def parent_group(self) -> Optional[str]:
         return self.data.get("parentGroupName")
+
+    def ancestors(self, include_self: bool = False) -> List["Visual"]:
+        """This visual (optionally) and its enclosing groups, innermost first; cycle safe."""
+        out: List[Visual] = [self] if include_self else []
+        seen = {id(self)}
+        v: Optional[Visual] = self
+        while v is not None and v.parent_group:
+            v = self.page.visual_named(v.parent_group)
+            if v is None or id(v) in seen:
+                break
+            seen.add(id(v))
+            out.append(v)
+        return out
+
+    @property
+    def page_xy(self) -> Tuple[float, float]:
+        """Top-left corner in page coordinates: PBIR stores group children relative to their group."""
+        x = y = 0.0
+        for v in self.ancestors(include_self=True):
+            try:
+                x += float(v.position.get("x", 0) or 0)
+                y += float(v.position.get("y", 0) or 0)
+            except (TypeError, ValueError):
+                pass
+        return x, y
 
     @property
     def sync_group(self) -> Optional[str]:
@@ -156,6 +182,12 @@ class Page:
     file: JsonFile
     data: Dict[str, Any]
     visuals: List[Visual] = field(default_factory=list)
+    _by_name: Optional[Dict[str, Visual]] = field(default=None, repr=False, compare=False)
+
+    def visual_named(self, name: str) -> Optional[Visual]:
+        if self._by_name is None or len(self._by_name) != len(self.visuals):
+            self._by_name = {v.name: v for v in self.visuals}
+        return self._by_name.get(name)
 
     @property
     def display_name(self) -> str:

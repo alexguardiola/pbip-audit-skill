@@ -279,6 +279,9 @@ class Column:
     sort_by: Optional[str] = None
     data_category: Optional[str] = None
     variations: List[str] = field(default_factory=list)
+    source_column: Optional[str] = None
+    group_by: List[str] = field(default_factory=list)  # relatedColumnDetails groupByColumn (field parameters)
+    is_parameter: bool = False  # extendedProperty ParameterMetadata (field parameter Fields column)
 
 
 @dataclass
@@ -293,6 +296,28 @@ class Measure:
     is_hidden: bool = False
     display_folder: Optional[str] = None
     description: Optional[str] = None
+    format_expression: Optional[str] = None  # formatStringDefinition DAX
+    format_expression_line: Optional[int] = None
+    kpi: List[Tuple[str, int, str]] = field(default_factory=list)  # (property, line, DAX)
+
+
+@dataclass
+class CalculationItem:
+    name: str
+    table: str
+    file: str
+    line: int
+    expression: str = ""
+    format_expression: Optional[str] = None
+    format_expression_line: Optional[int] = None
+
+
+@dataclass
+class Function:
+    name: str
+    file: str
+    line: int
+    expression: str = ""
 
 
 @dataclass
@@ -320,6 +345,7 @@ class Table:
     has_refresh_policy: bool = False
     refresh_policy_line: Optional[int] = None
     is_calculation_group: bool = False
+    calculation_items: List[CalculationItem] = field(default_factory=list)
     annotations: Dict[str, str] = field(default_factory=dict)
 
     @property
@@ -371,6 +397,7 @@ class SemanticModel:
     relationships: List[Relationship] = field(default_factory=list)
     roles: List[Role] = field(default_factory=list)
     expressions: List[SharedExpression] = field(default_factory=list)
+    functions: List[Function] = field(default_factory=list)
     model_props: Dict[str, str] = field(default_factory=dict)
     model_annotations: Dict[str, Tuple[str, int]] = field(default_factory=dict)
     model_file: Optional[str] = None
@@ -401,6 +428,27 @@ class SemanticModel:
         for r in self.roles:
             for (_tbl, dax, line) in r.filters:
                 out.append(("role", r.file, line, dax))
+        out.extend((kind, file, line, text) for (kind, _name, file, line, text) in self.extra_dax())
+        return out
+
+    def extra_dax(self) -> List[Tuple[str, str, str, int, str]]:
+        """DAX outside measures, columns, partitions and roles: (kind, owner name, file, line, text).
+
+        User-defined functions, calculation items, format string expressions and KPI expressions.
+        """
+        out: List[Tuple[str, str, str, int, str]] = []
+        for t in self.tables.values():
+            for m in t.measures.values():
+                if m.format_expression:
+                    out.append(("format string", m.name, m.file, m.format_expression_line or m.line, m.format_expression))
+                for prop, line, text in m.kpi:
+                    out.append(("KPI", m.name, m.file, line, text))
+            for ci in t.calculation_items:
+                out.append(("calculation item", ci.name, ci.file, ci.line, ci.expression))
+                if ci.format_expression:
+                    out.append(("format string", ci.name, ci.file, ci.format_expression_line or ci.line, ci.format_expression))
+        for fn in self.functions:
+            out.append(("function", fn.name, fn.file, fn.line, fn.expression))
         return out
 
 
@@ -456,6 +504,8 @@ def _project(model: SemanticModel, node: Node) -> None:
         model.roles.append(role)
     elif k == "expression" and node.name:
         model.expressions.append(SharedExpression(node.name, node.file, node.line, node.value or ""))
+    elif k == "function" and node.name and not node.is_ref:
+        model.functions.append(Function(node.name, node.file, node.line, node.value or ""))
     elif k == "database":
         for c in node.children:
             _project(model, c)
@@ -486,13 +536,18 @@ def _project_table(model: SemanticModel, node: Node) -> None:
                 is_key=c.flag("isKey"),
                 sort_by=unquote_name(c.props["sortbycolumn"]) if "sortbycolumn" in c.props else None,
                 data_category=c.props.get("datacategory"),
+                source_column=c.props.get("sourcecolumn"),
+                is_parameter=any((e.name or "").lower() == "parametermetadata" for e in c.child("extendedproperty")),
             )
+            for d in c.child("relatedcolumndetails"):
+                if "groupbycolumn" in d.props:
+                    col.group_by.append(unquote_name(d.props["groupbycolumn"]))
             for v in c.child("variation"):
                 if "defaulthierarchy" in v.props:
                     col.variations.append(v.props["defaulthierarchy"])
             table.columns[c.name.lower()] = col
         elif ck == "measure" and c.name:
-            table.measures[c.name.lower()] = Measure(
+            me = table.measures[c.name.lower()] = Measure(
                 name=c.name, table=name, file=c.file, line=c.line,
                 expression=c.value or "",
                 format_string=c.props.get("formatstring"),
@@ -502,6 +557,13 @@ def _project_table(model: SemanticModel, node: Node) -> None:
                 display_folder=c.props.get("displayfolder"),
                 description=c.description,
             )
+            if c.props.get("formatstringdefinition", "").strip():
+                me.format_expression = c.props["formatstringdefinition"]
+                me.format_expression_line = c.prop_lines.get("formatstringdefinition")
+            for k in c.child("kpi"):
+                for prop in ("targetexpression", "statusexpression", "trendexpression"):
+                    if (k.props.get(prop) or "").strip():
+                        me.kpi.append((prop, k.prop_lines.get(prop, k.line), k.props[prop]))
         elif ck == "hierarchy" and c.name:
             levels = []
             for lv in c.child("level"):
@@ -520,6 +582,15 @@ def _project_table(model: SemanticModel, node: Node) -> None:
             table.refresh_policy_line = c.line
         elif ck == "calculationgroup":
             table.is_calculation_group = True
+            for ci in c.child("calculationitem"):
+                if ci.name is None:
+                    continue
+                fsd = ci.props.get("formatstringdefinition")
+                table.calculation_items.append(CalculationItem(
+                    name=ci.name, table=name, file=ci.file, line=ci.line, expression=ci.value or "",
+                    format_expression=fsd if (fsd or "").strip() else None,
+                    format_expression_line=ci.prop_lines.get("formatstringdefinition"),
+                ))
         elif ck == "annotation" and c.name:
             table.annotations[c.name] = (c.value or "").strip()
 

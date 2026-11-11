@@ -1,0 +1,15 @@
+table 'Period Template'
+
+	column Day
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: [Date]
+
+	column Spare
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Spare]
+
+	partition 'Period Template' = calculated
+		mode: import
+		source = ADDCOLUMNS(CALENDAR(DATE(2024, 1, 1), DATE(2024, 12, 31)), "Spare", "x")

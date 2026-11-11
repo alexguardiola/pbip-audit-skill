@@ -22,7 +22,7 @@ Rules from Microsoft's report accessibility checklist and WCAG 2.2. Alt text and
 
 - **Severity:** High. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Screen readers announce only the visual type when alt text is missing.
-- **How to verify:** Visible, non-decorative, non-slicer visuals with no `general.altText` (counted per page).
+- **How to verify:** Visible, non-decorative, non-slicer visuals with no `general.altText` (counted per page). Alt text bound to a measure counts as present; a visual inside a hidden group is hidden.
 - **Fix:** Add alt text that states the insight, or bind it to a measure for dynamic text.
 - **Source:** <https://learn.microsoft.com/power-bi/create-reports/desktop-accessibility-creating-reports>
 
@@ -38,7 +38,7 @@ Rules from Microsoft's report accessibility checklist and WCAG 2.2. Alt text and
 
 - **Severity:** Low. **Check:** D (scan.py). **Type:** recommendation.
 - **Why:** Keyboard users jump around the page when tab order ignores the visual layout.
-- **How to verify:** Compare `position.tabOrder` with a top-to-bottom, left-to-right order (visuals within the row band, default 40px, share a row); flag when more than the tolerance (default 40%) of pairs are inverted. Both are configurable.
+- **How to verify:** Compare `position.tabOrder` with a top-to-bottom, left-to-right order in page coordinates (group children are positioned relative to their group; visuals within the row band, default 40px, share a row); flag when more than the tolerance (default 40%) of pairs are inverted. Both are configurable.
 - **Fix:** Set the tab order in the Selection pane.
 - **Source:** <https://learn.microsoft.com/power-bi/create-reports/desktop-accessibility-creating-reports>
 
@@ -46,7 +46,7 @@ Rules from Microsoft's report accessibility checklist and WCAG 2.2. Alt text and
 
 - **Severity:** High. **Check:** D (scan.py). **Type:** defect.
 - **Why:** WCAG 2.2 requires 4.5:1 for normal text, 3:1 for large text (18pt+) and 3:1 for graphical objects such as series colours.
-- **How to verify:** The scanner resolves the base + custom theme and `ThemeDataColor` references and computes WCAG relative-luminance contrast for: theme foreground and text classes against the theme background; literal or theme font colours in visuals against the visual, page or theme background (only when every plausible background fails, and never when a shape or image sits underneath); and the first N custom-theme data colours against the background (Medium). Measure-driven colours are not assessable offline; the agent checks the remaining cases by hand.
+- **How to verify:** The scanner resolves the base + custom theme and `ThemeDataColor` references and computes WCAG relative-luminance contrast for: theme foreground and text classes against the theme background; literal or theme font colours in visuals against the visual, page or theme background (only when every plausible background fails, and never when a shape or image sits underneath or the page has a background or wallpaper image; the new card visual's tile fill counts as its background); and the first N custom-theme data colours against the background (Medium). Measure-driven colours are not assessable offline; the agent checks the remaining cases by hand.
 - **Fix:** Adjust the theme palette or the visual's font/background colours.
 - **Source:** <https://www.w3.org/TR/WCAG22/>
 

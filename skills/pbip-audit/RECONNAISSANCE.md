@@ -4,7 +4,7 @@ Goal: know what you are auditing before you judge it. Spend a few minutes here; 
 
 ## Checklist
 
-1. **Locate the project.** Find the `*.pbip` file. Read `artifacts[].report.path`. One folder can hold several projects; audit one at a time.
+1. **Locate the project.** Find the `*.pbip` file. Read `artifacts[].report.path`. One folder can hold several projects; audit one at a time. A Fabric Git workspace has item folders (`<Name>.Report/definition.pbir`, `<Name>.SemanticModel/`) and no `.pbip`: `scan.py` then audits the single `*.Report` folder (with the model its `byPath` names) or, without a report, the single `*.SemanticModel` folder, and says so in its notes; with several, pass the folder to audit.
 2. **Report format.**
    - `<Name>.Report/definition/` exists: **PBIR**. All report rules apply.
    - Only `<Name>.Report/report.json`: **PBIR-Legacy**. Raise GOV-13 and skip report rules; the legacy blob is not a documented format.

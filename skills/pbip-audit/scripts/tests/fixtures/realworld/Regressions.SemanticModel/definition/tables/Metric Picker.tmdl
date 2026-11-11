@@ -1,0 +1,27 @@
+table 'Metric Picker'
+
+	column 'Metric Picker'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Metric Picker Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Metric Picker Fields'
+
+	column 'Metric Picker Fields'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Value2]
+
+	column 'Metric Picker Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+	partition 'Metric Picker' = calculated
+		mode: import
+		source = {("Revenue", NAMEOF('Sales'[Revenue]), 0), ("Margin", NAMEOF('Sales'[Margin]), 1)}

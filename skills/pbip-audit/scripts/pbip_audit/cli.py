@@ -19,10 +19,10 @@ from .adapters import ImportError_, import_bpa, import_fabinspector, renumber
 from .catalog import BY_ID, PILLARS, RULES, SEVERITIES
 from .checks import Options, apply_policy, run_checks
 from .config import ConfigError, find_config, load_config, load_external_usage, page_name_patterns
-from .output import scores, to_markdown, to_sarif
-from .project import DiscoveryError, find_pbip, load_project
+from .output import assessed_pillars, scores, to_markdown, to_sarif
+from .project import DiscoveryError, find_target, load_project
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"
 
 
 def build_result(path: Path, options: Options, imports: Optional[Dict[str, List[Path]]] = None,
@@ -100,7 +100,7 @@ def build_result(path: Path, options: Options, imports: Optional[Dict[str, List[
         result["theme"] = {"base": th.base_source, "custom": th.custom.rel if th.custom else None,
                            "background": th.background, "foreground": th.foreground,
                            "data_colors": th.data_colors[:8]}
-    result["scores"] = scores(findings)
+    result["scores"] = scores(findings, assessed_pillars(r.format if r else "none", project.model_format))
     if notes:
         result["notes"] = notes
     return result
@@ -143,9 +143,9 @@ def _options_from(args: argparse.Namespace, cfg: Dict[str, Any]) -> Options:
 
 
 def auto_path_prefix(target: Path) -> str:
-    """Folder holding the .pbip, relative to the current directory (normally the repository root)."""
+    """Folder holding the .pbip (or the Fabric item folders), relative to the current directory (normally the repository root)."""
     try:
-        rel = os.path.relpath(str(find_pbip(target).parent), os.getcwd())
+        rel = os.path.relpath(str(find_target(target).base), os.getcwd())
     except ValueError:
         rel = ".."
     rel = Path(rel).as_posix()
@@ -158,7 +158,7 @@ def auto_path_prefix(target: Path) -> str:
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="pbip-audit", description="Offline deterministic audit of a Power BI PBIP project.")
     ap.add_argument("--version", action="version", version="pbip-audit " + __version__)
-    ap.add_argument("path", help="Path to a .pbip file or a folder containing one")
+    ap.add_argument("path", help="Path to a .pbip file or a folder containing one (without a .pbip: a single *.Report or *.SemanticModel folder, Fabric Git layout)")
     ap.add_argument("--format", choices=["json", "md", "sarif"], default="json")
     ap.add_argument("--out", help="Write output to this file instead of stdout")
     ap.add_argument("--config", help="Config file (default: nearest .pbip-audit.json at or above the project)")

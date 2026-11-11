@@ -12,6 +12,10 @@ Creates four tiny projects next to this file:
 * ``tmsl/``    a project whose model is stored as model.bim
 * ``imports/`` synthetic Tabular Editor BPA and Fab Inspector result files,
   an external-usage list and a config file used by the adapter/config tests
+* ``realworld/`` minimal synthetic reproductions of false positives and parser
+  gaps first seen on real public projects (no real content is copied)
+* ``fabric/``  a Fabric Git layout: ``*.Report`` + ``*.SemanticModel`` folders
+  and no ``.pbip`` file
 
 All names and data are invented. The generated files are committed so tests do
 not depend on this script, but contributors can edit and re-run it.
@@ -382,6 +386,11 @@ DEF_CALENDAR = """table Calendar
 \t\tdataType: int64
 \t\tsummarizeBy: none
 
+\tcolumn DateKey = YEAR('Calendar'[Date]) * 10000 + MONTH('Calendar'[Date]) * 100 + DAY('Calendar'[Date])
+\t\tdataType: int64
+\t\tisHidden
+\t\tsummarizeBy: none
+
 \tpartition Calendar = calculated
 \t\tmode: import
 \t\tsource = CALENDAR(DATE(2020, 1, 1), DATE(2031, 12, 31))
@@ -490,10 +499,10 @@ DEF_ORDERS = f"""table Orders
 \tmeasure 'Orphan Measure' = 1
 \t\tformatString: 0
 
-\tcolumn OrderDate
-\t\tdataType: dateTime
+\tcolumn OrderDateKey
+\t\tdataType: int64
 \t\tsummarizeBy: none
-\t\tsourceColumn: OrderDate
+\t\tsourceColumn: OrderDateKey
 
 \tcolumn ShipDate
 \t\tdataType: dateTime
@@ -521,8 +530,8 @@ DEF_ORDERS = f"""table Orders
 """
 
 DEF_RELS = """relationship rel_orders_date
-\tfromColumn: Orders.OrderDate
-\ttoColumn: Calendar.Date
+\tfromColumn: Orders.OrderDateKey
+\ttoColumn: Calendar.DateKey
 
 relationship rel_orders_ship
 \tisActive: false
@@ -711,6 +720,399 @@ def build_tmsl() -> None:
     write(rep / "definition" / "pages" / "main" / "page.json", page("main", "Main"))
 
 
+# ---------------------------------------------------------------------------
+# realworld: regression cases (synthetic; one per false positive or parser gap)
+# ---------------------------------------------------------------------------
+
+RW_MODEL = """model Model
+\tculture: en-US
+\tdiscourageImplicitMeasures
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+"""
+
+# measures referenced only from a function, a calculation item, a format string
+# expression and a KPI; text measures that are a single string literal
+RW_SALES = """/// Sales lines.
+table Sales
+
+\t/// Revenue.
+\tmeasure Revenue = SUM(Sales[Amount])
+\t\tformatString: #,0
+
+\t\tkpi
+\t\t\ttargetExpression = [Used By Kpi]
+
+\t/// Margin with a dynamic format string.
+\tmeasure Margin = [Revenue] * 0.2
+\t\tformatStringDefinition = IF([Used By Format] > 1, "#,0.0", "#,0")
+
+\t/// Only used by the DoubleIt function.
+\tmeasure 'Used By Function' = SUM(Sales[Amount]) * 2
+\t\tformatString: #,0
+
+\t/// Only used by a calculation item.
+\tmeasure 'Used By Calc Item' = 3
+\t\tformatString: 0
+
+\t/// Only used by a format string expression.
+\tmeasure 'Used By Format' = 4
+\t\tformatString: 0
+
+\t/// Only used by a KPI target.
+\tmeasure 'Used By Kpi' = 5
+\t\tformatString: 0
+
+\t/// Brand colour for conditional formatting.
+\tmeasure 'Brand Teal' = "#287e8f"
+
+\t/// Date pattern used by FORMAT in other measures.
+\tmeasure 'Short Date Pattern' = "dd-mmm-yyyy"
+
+\t/// Alt text of the revenue card.
+\tmeasure 'Card Alt' = "Revenue of the selected period"
+
+\t/// Revenue of the same period last year.
+\tmeasure 'Revenue LY' = CALCULATE([Revenue], SAMEPERIODLASTYEAR('Day'[Date]))
+\t\tformatString: #,0
+
+\tcolumn SaleDate
+\t\tdataType: dateTime
+\t\tisHidden
+\t\tsummarizeBy: none
+\t\tsourceColumn: SaleDate
+
+\tcolumn Amount
+\t\tdataType: decimal
+\t\tisHidden
+\t\tsummarizeBy: none
+\t\tsourceColumn: Amount
+
+\tpartition Sales = m
+\t\tmode: import
+\t\tsource =
+\t\t\t\tlet
+\t\t\t\t    Source = #table({"Amount", "SaleDate"}, {{10, #date(2024, 1, 1)}})
+\t\t\t\tin
+\t\t\t\t    Source
+"""
+
+# unmarked date table related through dateTime columns: time intelligence is safe
+RW_DAY = """table Day
+
+\tcolumn Date
+\t\tdataType: dateTime
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Date]
+
+\tpartition Day = calculated
+\t\tmode: import
+\t\tsource = CALENDAR(DATE(2024, 1, 1), DATE(2024, 12, 31))
+"""
+
+RW_RELS = """relationship rel_sales_day
+\tfromColumn: Sales.SaleDate
+\ttoColumn: Day.Date
+"""
+
+RW_FUNCTIONS = """function DoubleIt = ```
+\t\t(x: NUMERIC) =>
+\t\tx * [Used By Function]
+\t\t```
+"""
+
+RW_CALC_GROUP = """table 'View As'
+
+\tcalculationGroup
+
+\t\tcalculationItem Current = SELECTEDMEASURE()
+
+\t\tcalculationItem Ratio = SELECTEDMEASURE() / [Used By Calc Item]
+
+\t\t\tformatStringDefinition = "0.0%"
+
+\tcolumn 'View As'
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: Name
+"""
+
+# field parameters: the hidden Fields column is referenced by groupByColumn (Metric
+# Picker) or carries ParameterMetadata (Axis Picker); never by a visual
+RW_METRIC_PICKER = """table 'Metric Picker'
+
+\tcolumn 'Metric Picker'
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Value1]
+\t\tsortByColumn: 'Metric Picker Order'
+
+\t\trelatedColumnDetails
+\t\t\tgroupByColumn: 'Metric Picker Fields'
+
+\tcolumn 'Metric Picker Fields'
+\t\tdataType: string
+\t\tisHidden
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Value2]
+
+\tcolumn 'Metric Picker Order'
+\t\tdataType: int64
+\t\tisHidden
+\t\tformatString: 0
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Value3]
+
+\tpartition 'Metric Picker' = calculated
+\t\tmode: import
+\t\tsource = {("Revenue", NAMEOF('Sales'[Revenue]), 0), ("Margin", NAMEOF('Sales'[Margin]), 1)}
+"""
+
+RW_AXIS_PICKER = """table 'Axis Picker'
+
+\tcolumn 'Axis Picker'
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Value1]
+
+\tcolumn 'Axis Picker Fields'
+\t\tdataType: string
+\t\tisHidden
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Value2]
+
+\t\textendedProperty ParameterMetadata =
+\t\t\t\t{
+\t\t\t\t  "version": 3,
+\t\t\t\t  "kind": 2
+\t\t\t\t}
+
+\tpartition 'Axis Picker' = calculated
+\t\tmode: import
+\t\tsource = {("Code", NAMEOF('Code View'[Code]), 0)}
+"""
+
+# a calculated table that copies another table whole
+RW_PERIOD_TEMPLATE = """table 'Period Template'
+
+\tcolumn Day
+\t\tdataType: dateTime
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Date]
+
+\tcolumn Spare
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: [Spare]
+
+\tpartition 'Period Template' = calculated
+\t\tmode: import
+\t\tsource = ADDCOLUMNS(CALENDAR(DATE(2024, 1, 1), DATE(2024, 12, 31)), "Spare", "x")
+"""
+
+RW_PERIOD = """table Period
+
+\tcolumn Day
+\t\tdataType: dateTime
+\t\tsummarizeBy: none
+\t\tsourceColumn: 'Period Template'[Day]
+
+\tcolumn Spare
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: 'Period Template'[Spare]
+
+\tpartition Period = calculated
+\t\tmode: import
+\t\tsource = 'Period Template'
+"""
+
+# a calculated table whose columns name their source as Table[Column]
+RW_CODE_BASE = """table 'Code Base'
+
+\tcolumn Code
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: Code
+
+\tcolumn Label
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: Label
+
+\tcolumn Active
+\t\tdataType: boolean
+\t\tsummarizeBy: none
+\t\tsourceColumn: Active
+
+\tpartition 'Code Base' = m
+\t\tmode: import
+\t\tsource =
+\t\t\t\tlet
+\t\t\t\t    Source = #table({"Code", "Label", "Active"}, {{"A", "Alpha", true}})
+\t\t\t\tin
+\t\t\t\t    Source
+"""
+
+RW_CODE_VIEW = """table 'Code View'
+
+\tcolumn Code
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: 'Code Base'[Code]
+
+\tcolumn Label
+\t\tdataType: string
+\t\tsummarizeBy: none
+\t\tsourceColumn: 'Code Base'[Label]
+
+\tpartition 'Code View' = calculated
+\t\tmode: import
+\t\tsource = CALCULATETABLE('Code Base', 'Code Base'[Active] = TRUE())
+"""
+
+
+def solid(hex_colour: str) -> Dict[str, Any]:
+    return {"solid": {"color": lit(f"'{hex_colour}'")}}
+
+
+def build_realworld() -> None:
+    root = HERE / "realworld"
+    rep, sm = scaffold(root, "Regressions")
+    write(rep / "definition.pbir", {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
+        "version": "4.0", "datasetReference": {"byPath": {"path": "../Regressions.SemanticModel"}}})
+    d = sm / "definition"
+    write(d / "database.tmdl", "database Regressions\n\tcompatibilityLevel: 1702\n")
+    write(d / "model.tmdl", RW_MODEL)
+    write(d / "functions.tmdl", RW_FUNCTIONS)
+    write(d / "relationships.tmdl", RW_RELS)
+    for fname, text in (("Sales", RW_SALES), ("View As", RW_CALC_GROUP), ("Metric Picker", RW_METRIC_PICKER),
+                        ("Axis Picker", RW_AXIS_PICKER), ("Period Template", RW_PERIOD_TEMPLATE), ("Period", RW_PERIOD),
+                        ("Code Base", RW_CODE_BASE), ("Code View", RW_CODE_VIEW), ("Day", RW_DAY)):
+        write(d / "tables" / f"{fname}.tmdl", text)
+
+    pages_order = ["overview", "drill", "imagePage", "cardFill", "hiddenGroup", "groupOffsets"]
+    report_common(rep, pages_order, base_theme=BASE_THEME)
+    pages = rep / "definition" / "pages"
+
+    # overview: alt text bound to a measure; field parameter slicers; stale references
+    write(pages / "overview" / "page.json", page("overview", "Overview"))
+    card = visual("revenueCard", "card", (20, 20, 290, 110), 0, [("Values", "Measure", "Sales", "Revenue")], title="Revenue")
+    card["visual"]["visualContainerObjects"]["general"] = [{"properties": {"altText": {"expr": field("Measure", "Sales", "Card Alt")}}}]
+    add_visual(rep, "overview", card, mobile=True)
+    add_visual(rep, "overview", visual("metricSlicer", "slicer", (330, 20, 290, 110), 1,
+                                       [("Values", "Column", "Metric Picker", "Metric Picker")]))
+    add_visual(rep, "overview", visual("axisSlicer", "slicer", (640, 20, 290, 110), 2,
+                                       [("Values", "Column", "Axis Picker", "Axis Picker")]))
+    stale = visual("staleTable", "tableEx", (20, 150, 1240, 400), 3,
+                   [("Values", "Column", "Period", "Day"), ("Values", "Column", "Period", "Spare"),
+                    ("Values", "Column", "Code View", "Code"), ("Values", "Column", "Code View", "Label"),
+                    ("Values", "Measure", "Sales", "Margin")],
+                   alt="Margin by day and code", title="Margin by day and code",
+                   filters=[
+                       {"name": "fCard", "field": field("Measure", "Sales", "Old Filter Measure"), "type": "Advanced"},
+                       {"name": "fCond", "field": field("Column", "Sales", "Old Condition Column"), "type": "Categorical",
+                        "filter": {"Version": 2, "From": [{"Name": "s", "Entity": "Sales", "Type": 0}],
+                                   "Where": [{"Condition": {"In": {
+                                       "Expressions": [{"Column": {"Expression": {"SourceRef": {"Source": "s"}}, "Property": "Old Condition Column"}}],
+                                       "Values": [[{"Literal": {"Value": "'A'"}}]]}}}]}},
+                   ],
+                   objects={"columnWidth": [{"properties": {"value": lit("120D")},
+                                             "selector": {"data": [{"scopeId": {"Comparison": {
+                                                 "ComparisonKind": 0, "Left": field("Column", "Sales", "Old Width Column"),
+                                                 "Right": {"Literal": {"Value": "'A'"}}}}}]}}]})
+    stale["visual"]["query"]["sortDefinition"] = {"sort": [{"field": field("Column", "Sales", "Old Sort Column"), "direction": "Descending"}],
+                                                  "isDefaultSort": False}
+    add_visual(rep, "overview", stale)
+    write(rep / "definition" / "bookmarks" / "bmStale.bookmark.json", {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+        "displayName": "Filtered view", "name": "bmStale",
+        "explorationState": {"version": "1.3", "activeSection": "overview", "sections": {"overview": {"visualContainers": {
+            "staleTable": {"filters": {"byExpr": [{"name": "bf1", "type": "Advanced",
+                                                   "expression": field("Measure", "Sales", "Old Bookmark Measure")}]}}}}}},
+    })
+
+    # drill: drillthrough page whose Back action is on a shape, not a button
+    write(pages / "drill" / "page.json", page("drill", "Code Detail", visibility="HiddenInViewMode",
+                                              pageBinding={"name": "c1d2e3f4a5b6c7d8e9f0", "type": "Drillthrough",
+                                                           "parameters": [{"name": "p1", "boundFilter": "f1",
+                                                                           "fieldExpr": field("Column", "Code View", "Code")}]}))
+    back = visual("backShape", "shape", (20, 20, 40, 40), 0)
+    back["visual"]["visualContainerObjects"] = {"visualLink": [{"properties": {"show": lit("true"), "type": lit("'Back'")}}]}
+    add_visual(rep, "drill", back)
+    add_visual(rep, "drill", visual("drillTbl", "tableEx", (20, 80, 1240, 600), 1,
+                                    [("Values", "Column", "Code View", "Label"), ("Values", "Measure", "Sales", "Revenue")],
+                                    alt="Revenue for the selected code", title="Revenue by label"))
+
+    # imagePage: white text over a page background image (background unknown offline)
+    write(pages / "imagePage" / "page.json", page("imagePage", "Image Background", objects={"background": [{"properties": {
+        "image": {"image": {"name": lit("'backdrop.png'"),
+                            "url": {"expr": {"ResourcePackageItem": {"PackageName": "RegisteredResources", "PackageType": 1, "ItemName": "backdrop.png"}}},
+                            "scaling": lit("'Fit'")}},
+        "transparency": lit("0D")}}]}))
+    add_visual(rep, "imagePage", visual("imgCard", "card", (20, 20, 290, 110), 0, [("Values", "Measure", "Sales", "Revenue")],
+                                        alt="Revenue card", container={"title": [{"properties": {
+                                            "show": lit("true"), "text": lit("'Revenue'"), "fontColor": solid("#FFFFFF")}}]}))
+
+    # cardFill: new card visual, white value text on a dark tile fill
+    write(pages / "cardFill" / "page.json", page("cardFill", "Card Fill"))
+    tile = visual("tileCard", "cardVisual", (20, 20, 400, 150), 0, [("Data", "Measure", "Sales", "Revenue")],
+                  alt="Revenue tile", objects={
+                      "fillCustom": [{"properties": {"fillColor": solid("#1A1A1A")}, "selector": {"metadata": "Sales.Revenue"}}],
+                      "value": [{"properties": {"fontColor": solid("#FFFFFF")}, "selector": {"id": "default"}}],
+                  })
+    add_visual(rep, "cardFill", tile)
+
+    # hiddenGroup: 13 data visuals without alt text inside a hidden group
+    write(pages / "hiddenGroup" / "page.json", page("hiddenGroup", "Hidden Group"))
+    add_visual(rep, "hiddenGroup", {"$schema": VC, "name": "oldCards",
+                                    "position": {"x": 0, "y": 0, "z": 0, "width": 1280, "height": 720, "tabOrder": 0},
+                                    "visualGroup": {"displayName": "Old cards", "groupMode": "ScaleMode"}, "isHidden": True})
+    for i in range(13):
+        child = visual(f"oldCard{i:02d}", "card", ((i % 4) * 310, (i // 4) * 120, 290, 100), i + 1,
+                       [("Values", "Measure", "Sales", "Revenue")])
+        child["parentGroupName"] = "oldCards"
+        add_visual(rep, "hiddenGroup", child)
+    add_visual(rep, "hiddenGroup", visual("liveCard", "card", (20, 600, 290, 100), 20,
+                                          [("Values", "Measure", "Sales", "Revenue")], alt="Revenue card", title="Revenue"))
+
+    # groupOffsets: tab order follows reading order once group offsets are added
+    write(pages / "groupOffsets" / "page.json", page("groupOffsets", "Group Offsets"))
+    for name, pos, tab in (("topLeft", (20, 20, 300, 100), 1), ("topRight", (400, 20, 300, 100), 2)):
+        add_visual(rep, "groupOffsets", visual(name, "card", pos, tab, [("Values", "Measure", "Sales", "Revenue")],
+                                               alt=f"{name} card", title="Revenue"))
+    add_visual(rep, "groupOffsets", {"$schema": VC, "name": "lowerGroup",
+                                     "position": {"x": 20, "y": 400, "z": 5000, "width": 700, "height": 140, "tabOrder": 5000},
+                                     "visualGroup": {"displayName": "Lower row", "groupMode": "ScaleMode"}})
+    for name, pos, tab in (("lowLeft", (0, 20, 300, 100), 3), ("lowRight", (380, 20, 300, 100), 4)):
+        child = visual(name, "card", pos, tab, [("Values", "Measure", "Sales", "Revenue")], alt=f"{name} card", title="Revenue")
+        child["parentGroupName"] = "lowerGroup"
+        add_visual(rep, "groupOffsets", child)
+
+
+# ---------------------------------------------------------------------------
+# fabric: Fabric Git layout (item folders, no .pbip)
+# ---------------------------------------------------------------------------
+
+
+def build_fabric() -> None:
+    root = HERE / "fabric"
+    rep, sm = scaffold(root, "Shop")
+    (root / "Shop.pbip").unlink()
+    d = sm / "definition"
+    write(d / "database.tmdl", "database Shop\n\tcompatibilityLevel: 1600\n")
+    write(d / "model.tmdl", CLEAN_MODEL)
+    write(d / "tables" / "Calendar.tmdl", CLEAN_CALENDAR)
+    write(d / "tables" / "Product.tmdl", CLEAN_PRODUCT)
+    write(d / "tables" / "Orders.tmdl", CLEAN_ORDERS)
+    write(d / "relationships.tmdl", CLEAN_RELS)
+    report_common(rep, ["main"], base_theme=BASE_THEME)
+    write(rep / "definition" / "pages" / "main" / "page.json", page("main", "Sales Overview"))
+    add_visual(rep, "main", visual("revenue", "card", (20, 20, 290, 110), 0, [("Values", "Measure", "Orders", "Revenue")],
+                                   alt="Revenue card", title="Revenue"), mobile=True)
+
+
 if __name__ == "__main__":
     build_clean()
     build_defects()
@@ -718,4 +1120,6 @@ if __name__ == "__main__":
     build_thin()
     build_tmsl()
     build_imports()
+    build_realworld()
+    build_fabric()
     print("fixtures written to", HERE)

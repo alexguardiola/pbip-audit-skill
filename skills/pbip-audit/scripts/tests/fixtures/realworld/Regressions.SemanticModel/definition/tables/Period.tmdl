@@ -1,0 +1,15 @@
+table Period
+
+	column Day
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: 'Period Template'[Day]
+
+	column Spare
+		dataType: string
+		summarizeBy: none
+		sourceColumn: 'Period Template'[Spare]
+
+	partition Period = calculated
+		mode: import
+		source = 'Period Template'

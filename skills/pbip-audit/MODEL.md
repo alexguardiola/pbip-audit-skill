@@ -33,7 +33,7 @@ Review order: run `scan.py`, read every BIND finding first (they can invalidate 
 
 - **Severity:** Critical. **Check:** D (scan.py). **Type:** defect.
 - **Why:** A visual, filter or bookmark that points at a missing table, column, measure or hierarchy renders as an error (or silently drops a filter) for every viewer. No local tool checks this offline.
-- **How to verify:** Index every `SourceRef.Entity` + `Property` in visual.json, page.json, report.json and bookmarks (resolving `Source` aliases through `From`) and look each one up in the TMDL tables, columns, measures, hierarchies and reportExtensions.json.
+- **How to verify:** Index every `SourceRef.Entity` + `Property` in visual.json, page.json, report.json and bookmarks (resolving `Source` aliases through `From`) and look each one up in the TMDL tables, columns, measures, hierarchies and reportExtensions.json. Severity follows the location: Critical when the missing object is in a visual's query (`queryState`), a filter with a condition or any other place; Medium when every reference is only a stale leftover in a `sortDefinition`, a formatting selector (`visual.objects.*[].selector`) or a filter card without a condition, because the visual itself still has its fields.
 - **Fix:** Rebind the field in Desktop (or edit the JSON) to the renamed object, or restore the object in the model.
 - **Source:** <https://learn.microsoft.com/power-bi/developer/projects/projects-report>
 
@@ -49,7 +49,7 @@ Review order: run `scan.py`, read every BIND finding first (they can invalidate 
 
 - **Severity:** High. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Bookmarks snapshot visual query state. After a measure or column is renamed or deleted, applying the bookmark can restore a broken field list.
-- **How to verify:** Model references inside `bookmarks/*.bookmark.json` that do not resolve against the TMDL.
+- **How to verify:** Model references inside `bookmarks/*.bookmark.json` that do not resolve against the TMDL. Medium instead of High when every stale reference of the bookmark is only in a sort definition, a formatting selector or a filter without a condition.
 - **Fix:** Re-capture (update) the bookmark after fixing the page, or delete it if unused.
 - **Source:** <https://learn.microsoft.com/power-bi/create-reports/desktop-bookmarks>
 
@@ -81,7 +81,7 @@ Review order: run `scan.py`, read every BIND finding first (they can invalidate 
 
 - **Severity:** High. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Functions such as SAMEPERIODLASTYEAR or DATESYTD require a contiguous date column. Without a marked date table they can return wrong results when the relationship is not on a date-typed column.
-- **How to verify:** Any measure using a time-intelligence function while no table has `dataCategory: Time`.
+- **How to verify:** Any measure using a time-intelligence function while no table has `dataCategory: Time`, unless every date column it passes to those functions is joined by an active relationship between two dateTime columns.
 - **Fix:** Mark the calendar table as a date table (Table tools > Mark as date table).
 - **Source:** <https://learn.microsoft.com/power-bi/guidance/model-date-tables>
 
@@ -129,7 +129,7 @@ Review order: run `scan.py`, read every BIND finding first (they can invalidate 
 
 - **Severity:** Low. **Check:** D (scan.py). **Type:** recommendation.
 - **Why:** Objects referenced by no visual, filter, measure, relationship, sort or RLS rule cost memory and maintenance.
-- **How to verify:** Join the report reference index with every DAX text, relationship, sortByColumn and hierarchy level. Objects listed in an `--external-usage` file (used by other reports, Excel or paginated reports on the same model) count as used.
+- **How to verify:** Join the report reference index with every DAX text (measures, calculated columns and tables, RLS, calculation items, format string expressions, KPIs and user-defined functions), relationship, sortByColumn and hierarchy level. Field parameter columns (`relatedColumnDetails groupByColumn`, `extendedProperty ParameterMetadata`) count as used, and so does every column of a table that a calculated table copies whole (`source = OtherTable`) or names in `sourceColumn: OtherTable[Column]`. Objects listed in an `--external-usage` file (used by other reports, Excel or paginated reports on the same model) count as used.
 - **Fix:** Remove them after checking that no other report bound to this model uses them; record known external consumers in an external-usage file.
 - **Source:** <https://learn.microsoft.com/power-bi/guidance/import-modeling-data-reduction>
 

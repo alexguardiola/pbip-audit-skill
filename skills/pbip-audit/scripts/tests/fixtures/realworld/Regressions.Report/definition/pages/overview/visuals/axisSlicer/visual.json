@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "axisSlicer",
+  "position": {
+    "x": 640,
+    "y": 20,
+    "z": 2000,
+    "width": 290,
+    "height": 110,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Axis Picker"
+                    }
+                  },
+                  "Property": "Axis Picker"
+                }
+              },
+              "queryRef": "Axis Picker.Axis Picker",
+              "nativeQueryRef": "Axis Picker"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,9 @@
 """Lightweight PBIR schema validation against a local cache (no network, no jsonschema).
 
 Each PBIR JSON file declares ``$schema`` as
-``.../item/report/definition/<kind>/<version>/schema.json``. The cache
+``.../item/report/definition/<kind>/<version>/schema.json``, except
+``definition.pbir``, which declares ``.../item/report/definitionProperties/<version>/schema.json``
+(kind ``definitionProperties``, no ``/definition/`` segment). The cache
 (``schema_cache.json``) stores the top-level shape of Microsoft's published
 schemas: required properties, allowed properties and oneOf required sets. That
 catches the common breakages (a file without ``name`` or ``position``, a
@@ -20,7 +22,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 CACHE_PATH = Path(__file__).resolve().parent / "schema_cache.json"
-SCHEMA_URL_RE = re.compile(r"/item/report/definition/(?P<kind>[A-Za-z]+)/(?P<version>\d+\.\d+\.\d+)/schema\.json$")
+SCHEMA_URL_RE = re.compile(
+    r"/item/report/(?:definition/(?P<kind>[A-Za-z]+)|(?P<props>definitionProperties))/(?P<version>\d+\.\d+\.\d+)/schema\.json$")
 
 _cache: Optional[Dict[str, Any]] = None
 
@@ -43,7 +46,7 @@ def parse_schema_url(url: Optional[str]) -> Optional[Tuple[str, str]]:
     if not url:
         return None
     m = SCHEMA_URL_RE.search(url)
-    return (m.group("kind"), m.group("version")) if m else None
+    return (m.group("kind") or m.group("props"), m.group("version")) if m else None
 
 
 def check_document(data: Any, kind: str, version: str, cache: Dict[str, Any]) -> Optional[List[Tuple[str, str]]]:

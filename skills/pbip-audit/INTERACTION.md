@@ -75,7 +75,7 @@ IN-05 is a heuristic. It pairs a DAX pattern (TODAY/NOW plus REMOVEFILTERS/ALL o
 
 - **Severity:** Medium. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Users land on the drillthrough page and cannot return without knowing the Ctrl/Alt shortcut.
-- **How to verify:** `pageBinding.type: Drillthrough` page with no actionButton of type Back.
+- **How to verify:** `pageBinding.type: Drillthrough` page with no button, shape or image whose action (`visualLink`) is of type Back.
 - **Fix:** Add a Back button (Insert > Buttons > Back).
 - **Source:** <https://learn.microsoft.com/power-bi/create-reports/desktop-drillthrough>
 

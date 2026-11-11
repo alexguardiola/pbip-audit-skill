@@ -1,0 +1,24 @@
+table 'Code Base'
+
+	column Code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Code
+
+	column Label
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Label
+
+	column Active
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: Active
+
+	partition 'Code Base' = m
+		mode: import
+		source =
+				let
+				    Source = #table({"Code", "Label", "Active"}, {{"A", "Alpha", true}})
+				in
+				    Source

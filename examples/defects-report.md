@@ -1,6 +1,6 @@
 # PBIP audit: Defects.pbip
 
-Scanner 0.2.0 at 2026-11-10T15:21:57+00:00. Report format: PBIR; model format: TMDL; thin report: False.
+Scanner 0.3.0 at 2026-11-11T09:22:55+00:00. Report format: PBIR; model format: TMDL; thin report: False.
 
 Scanned 4 pages, 25 visuals, 4 tables, 10 measures, 4 relationships.
 Theme: base `built-in default`, custom `Defects.Report/StaticResources/RegisteredResources/BrandTheme.json`.
@@ -390,7 +390,7 @@ Slicer on 'Calendar'[Year] (page 'Page 1') has no filter limiting years, while t
 Check: D. Confidence: medium. Type: defect.
 
 - `Defects.Report/definition/pages/page1/visuals/slicerYearA/visual.json:26` $.visual.query.queryState.Values.projections[0].field.Column
-- `Defects.SemanticModel/definition/tables/Calendar.tmdl:13` date table definition
+- `Defects.SemanticModel/definition/tables/Calendar.tmdl:18` date table definition
 
 Fix: Add a visual-level filter (e.g. an `Is Past or Current Year` flag) or trim the slicer values. ([source](https://learn.microsoft.com/power-bi/guidance/model-date-tables))
 
@@ -401,7 +401,7 @@ Slicer on 'Calendar'[Year] (page 'Duplicate of Page 1') has no filter limiting y
 Check: D. Confidence: medium. Type: defect.
 
 - `Defects.Report/definition/pages/page2/visuals/slicerYearB/visual.json:26` $.visual.query.queryState.Values.projections[0].field.Column
-- `Defects.SemanticModel/definition/tables/Calendar.tmdl:13` date table definition
+- `Defects.SemanticModel/definition/tables/Calendar.tmdl:18` date table definition
 
 Fix: Add a visual-level filter (e.g. an `Is Past or Current Year` flag) or trim the slicer values. ([source](https://learn.microsoft.com/power-bi/guidance/model-date-tables))
 
@@ -455,11 +455,11 @@ Fix: Disable Auto date/time in the file options and use one shared, marked date 
 
 ##### MOD-07#1 Foreign-key column is visible
 
-Table 'Orders' has 1 visible foreign-key column(s): OrderDate.
+Table 'Orders' has 1 visible foreign-key column(s): OrderDateKey.
 
 Check: D. Confidence: high. Type: recommendation.
 
-- `Defects.SemanticModel/definition/tables/Orders.tmdl:49` OrderDate
+- `Defects.SemanticModel/definition/tables/Orders.tmdl:49` OrderDateKey
 
 Fix: Hide foreign-key columns in the fact table. ([source](https://learn.microsoft.com/power-bi/guidance/star-schema))
 

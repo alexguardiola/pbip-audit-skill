@@ -3,6 +3,9 @@
 
     python refresh_schema_cache.py [--kinds visualContainer,page] [--max-minor 30]
 
+Only the kinds probed are updated (their versions are added or replaced); every
+other kind already in the cache is kept, so a partial ``--kinds`` run is safe.
+
 This is the only script in the repository that uses the network. ``scan.py``
 never does: ``--validate-schemas`` reads the cache only. For each schema kind it
 probes versions ``<major>.<minor>.0`` and keeps the top-level shape (required
@@ -21,10 +24,14 @@ from pathlib import Path
 
 CACHE = Path(__file__).resolve().parent.parent / "pbip_audit" / "schema_cache.json"
 BASE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/{kind}/{version}/schema.json"
+# definition.pbir declares its schema outside the /definition/ folder of the report item
+BASE_BY_KIND = {
+    "definitionProperties": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/{version}/schema.json",
+}
 KINDS = {
     "visualContainer": (1, 2), "page": (1, 2), "report": (1, 3), "bookmark": (1, 2),
     "pagesMetadata": (1, 1), "versionMetadata": (1, 1), "bookmarksMetadata": (1, 1),
-    "reportExtension": (1, 1), "visualContainerMobileState": (1, 2),
+    "reportExtension": (1, 1), "visualContainerMobileState": (1, 2), "definitionProperties": (1, 2),
 }
 
 
@@ -49,14 +56,18 @@ def main(argv=None) -> int:
             for minor in range(0, args.max_minor + 1):
                 version = f"{major}.{minor}.0"
                 try:
-                    with urllib.request.urlopen(BASE.format(kind=kind, version=version), timeout=20) as r:
+                    url = BASE_BY_KIND.get(kind, BASE).format(kind=kind, version=version)
+                    with urllib.request.urlopen(url, timeout=20) as r:
                         d = json.load(r)
                 except (urllib.error.URLError, ValueError, OSError):
                     continue
                 schemas.setdefault(kind, {})[version] = shape(d)
                 print("cached", kind, version)
     doc = json.loads(CACHE.read_text(encoding="utf-8")) if CACHE.exists() else {}
-    doc["schemas"] = schemas
+    merged = doc.get("schemas") or {}
+    for kind, versions in schemas.items():
+        merged.setdefault(kind, {}).update(versions)
+    doc["schemas"] = merged
     doc["_fetched"] = _dt.date.today().isoformat()
     CACHE.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return 0

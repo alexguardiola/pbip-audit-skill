@@ -1,0 +1,15 @@
+table 'Code View'
+
+	column Code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: 'Code Base'[Code]
+
+	column Label
+		dataType: string
+		summarizeBy: none
+		sourceColumn: 'Code Base'[Label]
+
+	partition 'Code View' = calculated
+		mode: import
+		source = CALCULATETABLE('Code Base', 'Code Base'[Active] = TRUE())

@@ -1,0 +1,22 @@
+table 'Axis Picker'
+
+	column 'Axis Picker'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Value1]
+
+	column 'Axis Picker Fields'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Value2]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+	partition 'Axis Picker' = calculated
+		mode: import
+		source = {("Code", NAMEOF('Code View'[Code]), 0)}

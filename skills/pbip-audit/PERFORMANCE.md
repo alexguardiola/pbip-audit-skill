@@ -20,7 +20,7 @@ Offline you can only see the shape of the work (visuals per page, fields per vis
 
 - **Severity:** Medium. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Each data visual sends at least one query; busy pages render slowly and overload the reader. There is no official limit; the default threshold is 12 data-bound visuals.
-- **How to verify:** Count visible, data-bound visuals per page (`--max-visuals`).
+- **How to verify:** Count visible, data-bound visuals per page (`--max-visuals`); visuals inside a hidden group are hidden.
 - **Fix:** Split the page, use a multi-row card or a small multiple, or move detail to drillthrough.
 - **Source:** <https://learn.microsoft.com/power-bi/guidance/power-bi-optimization>
 

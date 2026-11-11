@@ -65,7 +65,7 @@ Count only `confirmed` and `needs_validation` findings.
 - pillar score = max(0, 100 - sum of the severity weights of its findings), weights Critical 25, High 10, Medium 4, Low 1, Info 0;
 - a finding counts once however many locations it lists (findings are already aggregated per root cause);
 - `false_positive` findings are excluded;
-- overall = mean of the nine pillar scores.
+- overall = mean of the nine pillar scores, or of the assessed ones only: a pillar whose files are missing or not readable offline (report pillars when the report is not PBIR, Model and DAX when the model is not TMDL) shows "not assessed" (`score: null`, `assessed: false` in the JSON) instead of a free 100.
 
 Use the score to rank where to look; do not present it as a certification, and do not compare scores between projects of very different size. If you add J findings, recompute with the same formula (or leave the scores out and say so).
 

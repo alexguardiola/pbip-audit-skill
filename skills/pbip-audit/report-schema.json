@@ -16,7 +16,8 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ]
     },
     "tool": {
@@ -174,7 +175,48 @@
     },
     "scores": {
       "type": "object",
-      "description": "Per-pillar scores; formula in VALIDATION-AND-REPORTING.md."
+      "description": "Per-pillar scores; formula in VALIDATION-AND-REPORTING.md. A pillar that could not be assessed (its files are missing or not PBIR/TMDL) has score null and assessed false, and is left out of the overall mean (schema 1.2).",
+      "properties": {
+        "formula": {
+          "type": "string"
+        },
+        "weights": {
+          "type": "object"
+        },
+        "overall": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pillars": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "score"
+            ],
+            "properties": {
+              "score": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "assessed": {
+                "type": "boolean"
+              },
+              "penalty": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "by_severity": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
     },
     "theme": {
       "type": "object"

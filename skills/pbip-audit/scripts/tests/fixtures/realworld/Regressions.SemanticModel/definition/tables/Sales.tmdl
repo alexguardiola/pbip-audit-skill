@@ -1,0 +1,62 @@
+/// Sales lines.
+table Sales
+
+	/// Revenue.
+	measure Revenue = SUM(Sales[Amount])
+		formatString: #,0
+
+		kpi
+			targetExpression = [Used By Kpi]
+
+	/// Margin with a dynamic format string.
+	measure Margin = [Revenue] * 0.2
+		formatStringDefinition = IF([Used By Format] > 1, "#,0.0", "#,0")
+
+	/// Only used by the DoubleIt function.
+	measure 'Used By Function' = SUM(Sales[Amount]) * 2
+		formatString: #,0
+
+	/// Only used by a calculation item.
+	measure 'Used By Calc Item' = 3
+		formatString: 0
+
+	/// Only used by a format string expression.
+	measure 'Used By Format' = 4
+		formatString: 0
+
+	/// Only used by a KPI target.
+	measure 'Used By Kpi' = 5
+		formatString: 0
+
+	/// Brand colour for conditional formatting.
+	measure 'Brand Teal' = "#287e8f"
+
+	/// Date pattern used by FORMAT in other measures.
+	measure 'Short Date Pattern' = "dd-mmm-yyyy"
+
+	/// Alt text of the revenue card.
+	measure 'Card Alt' = "Revenue of the selected period"
+
+	/// Revenue of the same period last year.
+	measure 'Revenue LY' = CALCULATE([Revenue], SAMEPERIODLASTYEAR('Day'[Date]))
+		formatString: #,0
+
+	column SaleDate
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: SaleDate
+
+	column Amount
+		dataType: decimal
+		isHidden
+		summarizeBy: none
+		sourceColumn: Amount
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    Source = #table({"Amount", "SaleDate"}, {{10, #date(2024, 1, 1)}})
+				in
+				    Source

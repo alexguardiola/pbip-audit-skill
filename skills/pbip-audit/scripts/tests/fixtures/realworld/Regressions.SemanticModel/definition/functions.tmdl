@@ -1,0 +1,4 @@
+function DoubleIt = ```
+		(x: NUMERIC) =>
+		x * [Used By Function]
+		```

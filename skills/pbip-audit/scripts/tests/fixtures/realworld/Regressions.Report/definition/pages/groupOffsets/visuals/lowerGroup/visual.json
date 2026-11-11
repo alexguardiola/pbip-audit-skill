@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "lowerGroup",
+  "position": {
+    "x": 20,
+    "y": 400,
+    "z": 5000,
+    "width": 700,
+    "height": 140,
+    "tabOrder": 5000
+  },
+  "visualGroup": {
+    "displayName": "Lower row",
+    "groupMode": "ScaleMode"
+  }
+}

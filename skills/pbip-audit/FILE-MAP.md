@@ -98,7 +98,7 @@ Text over a visual is judged against, in order: the property block's own backgro
 
 ## Schema versions
 
-Every PBIR file declares `$schema` (`.../definition/<kind>/<version>/schema.json`). `scan.py --validate-schemas` compares each file's top-level properties with a cached summary of that exact version (`scripts/pbip_audit/schema_cache.json`: required, allowed, oneOf). Versions missing from the cache are listed under GOV-18 instead of being checked against a neighbouring version. Some versions Desktop writes are not (yet) published at the schema URL; at the time of writing `visualContainer/2.14.0` returned 404, so it is reported as not checked.
+Every PBIR file declares `$schema` (`.../definition/<kind>/<version>/schema.json`; `definition.pbir` uses `.../item/report/definitionProperties/<version>/schema.json`). `scan.py --validate-schemas` compares each file's top-level properties with a cached summary of that exact version (`scripts/pbip_audit/schema_cache.json`: required, allowed, oneOf). Versions missing from the cache are listed under GOV-18 instead of being checked against a neighbouring version. Some versions Desktop writes are not (yet) published at the schema URL; at the time of writing `visualContainer/2.14.0` returned 404, so it is reported as not checked.
 
 ## Model (TMDL)
 

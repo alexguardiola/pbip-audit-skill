@@ -1,0 +1,14 @@
+table 'View As'
+
+	calculationGroup
+
+		calculationItem Current = SELECTEDMEASURE()
+
+		calculationItem Ratio = SELECTEDMEASURE() / [Used By Calc Item]
+
+			formatStringDefinition = "0.0%"
+
+	column 'View As'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Name

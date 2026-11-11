@@ -26,7 +26,7 @@ False-positive discipline: BLANK-to-zero (DAX-04) and `/` with a guaranteed non-
 
 - **Severity:** Medium. **Check:** D (scan.py). **Type:** defect.
 - **Why:** `/` raises an error or returns infinity when the denominator is zero or blank; DIVIDE handles it.
-- **How to verify:** A `/` in a measure whose denominator is not a numeric constant (strings, comments and names are stripped first).
+- **How to verify:** A `/` in a measure, calculation item, format string expression, KPI expression or user-defined function whose denominator is not a numeric constant (strings, comments and names are stripped first).
 - **Fix:** Use `DIVIDE(numerator, denominator)`.
 - **Source:** <https://learn.microsoft.com/dax/best-practices/dax-divide-function-operator>
 
@@ -66,7 +66,7 @@ False-positive discipline: BLANK-to-zero (DAX-04) and `/` with a guaranteed non-
 
 - **Severity:** Medium. **Check:** D (scan.py). **Type:** defect.
 - **Why:** Unformatted measures show raw decimals and inconsistent units across visuals and in Copilot answers.
-- **How to verify:** Visible measures with no `formatString` and no `formatStringDefinition`. Measures that look textual (name suggests title/label/colour, or the expression uses FORMAT, SELECTEDVALUE, CONCATENATEX, `&` or returns string literals) are skipped.
+- **How to verify:** Visible measures with no `formatString` and no `formatStringDefinition`. Measures that look textual (name suggests title/label/colour, or the expression uses FORMAT, SELECTEDVALUE, CONCATENATEX, `&`, returns string literals or is a single string literal such as a hex colour) are skipped.
 - **Fix:** Set a format string on every visible measure.
 - **Source:** <https://github.com/TabularEditor/BestPracticeRules>
 

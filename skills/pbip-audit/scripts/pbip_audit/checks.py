@@ -15,11 +15,11 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 from .catalog import BY_ID
 from .config import DEFAULT_LOCALES, page_name_patterns
 from .jsonloc import PathT, format_path, parse_path, walk
-from .pbir import DECORATIVE_TYPES, FieldRef, JsonFile, Page, Report, Visual, collect_refs
+from .pbir import DECORATIVE_TYPES, FieldRef, JsonFile, Page, Report, Visual, collect_refs, decode_value
 from .project import Project
 from .schemas import check_document, load_cache, parse_schema_url
 from .theme import Theme, confusable_pairs, contrast_ratio, normalize_hex, style_props, theme_line
-from .tmdl import SemanticModel, Table
+from .tmdl import SemanticModel, Table, unquote_name
 
 MAX_EVIDENCE = 25
 
@@ -268,6 +268,9 @@ def _looks_textual(me) -> bool:
     clean = strip_dax(me.expression or "", keep_names=False)
     if TEXT_EXPR_RE.search(clean):
         return True
+    # the whole expression is one string literal, e.g. "#287e8f" or "dd-mmm-yyyy"
+    if strip_dax(me.expression or "", keep_names=True).strip() == '""':
+        return True
     # returns string literals, e.g. IF(cond, "A", "B")
     return bool(re.search(r'[,(]\s*""\s*[,)]', clean))
 
@@ -339,33 +342,95 @@ def _rel(p: Project, path) -> str:
 # ---------------------------------------------------------------------------
 
 
+# Where a stale reference lives decides what a reader sees (BIND-01 / BIND-03).
+STALE_ONLY = {
+    "sort": ("a sort definition", "the visual falls back to its default sort order"),
+    "selector": ("a formatting selector", "that per-value formatting no longer applies"),
+    "filter-card": ("a filter card without a condition", "an empty or broken card in the filter pane; nothing is filtered"),
+}
+FILTER_LIST_KEYS = {"filters", "byExpr", "byName"}
+
+
+def _ref_location(data: Any, path: PathT) -> str:
+    """Classify a reference: query, filter (with a condition), sort, selector, filter-card or other."""
+    node = data
+    keys: List[str] = []
+    for i, seg in enumerate(path):
+        if isinstance(seg, str):
+            if seg == "queryState":
+                return "query"
+            if seg == "sortDefinition":
+                return "sort"
+            if seg == "selector" and "objects" in keys:
+                return "selector"
+        elif keys and keys[-1] in FILTER_LIST_KEYS and isinstance(node, list) and 0 <= seg < len(node) \
+                and isinstance(node[seg], dict):
+            nxt = path[i + 1] if i + 1 < len(path) else None
+            if nxt == "filter":
+                return "filter"
+            if nxt in ("field", "expression"):
+                return "filter" if node[seg].get("filter") else "filter-card"
+        if isinstance(seg, str):
+            keys.append(seg)
+        try:
+            node = node[seg]
+        except (KeyError, IndexError, TypeError):
+            return "other"
+    return "other"
+
+
+def _stale_only(locs: List[str]) -> Optional[Tuple[str, str]]:
+    """(where, what readers see) when every location is harmless to the visuals themselves."""
+    kinds = sorted(set(locs))
+    if not kinds or any(k not in STALE_ONLY for k in kinds):
+        return None
+    return " or ".join(STALE_ONLY[k][0] for k in kinds), "; ".join(STALE_ONLY[k][1] for k in kinds)
+
+
 def check_binding(ctx: Context) -> Iterable[Dict[str, Any]]:
     m, r = ctx.model, ctx.report
     if m is None or r is None or ctx.project.thin:
         return
-    missing: Dict[Tuple[str, str, str], List[Dict[str, Any]]] = {}
-    stale: Dict[str, List[Dict[str, Any]]] = {}
+    missing: Dict[Tuple[str, str, str], List[Tuple[Dict[str, Any], str]]] = {}
+    stale: Dict[str, List[Tuple[Dict[str, Any], str]]] = {}
     bookmark_files = {b.rel for b in r.bookmarks}
     for ref, jf in ctx.report_refs():
         problem = _resolve(ref, m, r)
         if problem is None:
             continue
-        line = jf.line_at(parse_path(ref.json_path) + ("Property",))
+        path = parse_path(ref.json_path)
+        line = jf.line_at(path + ("Property",))
+        loc = _ref_location(jf.data, path)
         if jf.rel in bookmark_files:
             d = f"{problem}: '{ref.entity}'[{ref.prop}]"
             lst = stale.setdefault(jf.rel, [])
-            if all(e.get("detail") != d for e in lst):
-                lst.append(ev(jf.rel, line, ref.json_path, detail=d))
+            if all(e.get("detail") != d for e, _ in lst):
+                lst.append((ev(jf.rel, line, ref.json_path, detail=d), loc))
             continue
         key = (ref.entity, ref.prop, problem)
-        missing.setdefault(key, []).append(ev(jf.rel, line, ref.json_path))
-    for rel, evs in sorted(stale.items()):
+        missing.setdefault(key, []).append((ev(jf.rel, line, ref.json_path), loc))
+    for rel, items in sorted(stale.items()):
         name = next((b.data.get("displayName") for b in r.bookmarks if b.rel == rel and isinstance(b.data, dict)), None) or rel
-        yield ctx.finding("BIND-03", f"Bookmark '{name}' stores state for {len(evs)} model object(s) that no longer exist; applying it can break visuals.",
-                          evs, confidence="medium", count=len(evs))
-    for (entity, prop, problem), evs in sorted(missing.items()):
-        yield ctx.finding("BIND-01", f"{problem}: '{entity}'[{prop}] is referenced in {len(evs)} place(s) but is not defined in the semantic model.",
-                          evs, count=len(evs))
+        evs = [e for e, _ in items]
+        soft = _stale_only([loc for _, loc in items])
+        if soft:
+            yield ctx.finding("BIND-03", f"Bookmark '{name}' keeps {len(evs)} stale reference(s) to model object(s) that no longer exist, only in {soft[0]}. "
+                              f"Applying it still restores the visuals' own fields; readers see {soft[1]}.",
+                              evs, confidence="medium", severity="Medium", count=len(evs))
+        else:
+            yield ctx.finding("BIND-03", f"Bookmark '{name}' stores state for {len(evs)} model object(s) that no longer exist; applying it can break visuals.",
+                              evs, confidence="medium", count=len(evs))
+    for (entity, prop, problem), items in sorted(missing.items()):
+        soft = _stale_only([loc for _, loc in items])
+        if soft:
+            evs = [dict(e, detail=STALE_ONLY[loc][0]) for e, loc in items]
+            yield ctx.finding("BIND-01", f"{problem}: '{entity}'[{prop}] is not defined in the semantic model and is referenced only in {soft[0]} ({len(evs)} place(s)). "
+                              f"The reference is stale but the visuals still have their own fields; readers see {soft[1]}.",
+                              evs, severity="Medium", count=len(evs))
+        else:
+            evs = [e for e, _ in items]
+            yield ctx.finding("BIND-01", f"{problem}: '{entity}'[{prop}] is referenced in {len(evs)} place(s) but is not defined in the semantic model.",
+                              evs, count=len(evs))
 
 
 def _resolve(ref: FieldRef, m: SemanticModel, r: Report) -> Optional[str]:
@@ -422,7 +487,8 @@ def check_model(ctx: Context) -> Iterable[Dict[str, Any]]:
     # MOD-04 time intelligence without marked date table
     has_marked = any((t.data_category or "").lower() == "time" for t in m.tables.values() if not t.is_auto_date)
     if not has_marked:
-        evs = [ev(me.file, me.line, detail=me.name) for me in m.all_measures() if TI_RE.search(me.expression or "")]
+        evs = [ev(me.file, me.line, detail=me.name) for me in m.all_measures()
+               if TI_RE.search(me.expression or "") and not _ti_over_date_relationship(m, me.expression or "")]
         if evs:
             yield ctx.finding("MOD-04", f"{len(evs)} measure(s) use time-intelligence functions but no table is marked as a date table (dataCategory: Time).",
                               evs, confidence="medium", count=len(evs))
@@ -482,6 +548,38 @@ def check_model(ctx: Context) -> Iterable[Dict[str, Any]]:
     yield from _check_unused(ctx)
 
 
+COLUMN_REF_RE = re.compile(r"^('(?:[^']|'')+'|\w+)\s*\[([^\]]+)\]$")
+
+
+def _ti_over_date_relationship(m: SemanticModel, expr: str) -> bool:
+    """True when every time-intelligence call gets a plain date column that an active relationship
+    joins through dateTime columns on both sides (the case where no marked date table is needed)."""
+    def dtype(table: str, column: str) -> str:
+        t = m.table(table)
+        c = t.columns.get(column.lower()) if t else None
+        return (c.data_type or "").lower() if c else ""
+
+    def on_date_relationship(table: str, column: str) -> bool:
+        tl, cl = table.lower(), column.lower()
+        for r in m.relationships:
+            ends = ((r.from_table, r.from_column), (r.to_table, r.to_column))
+            if r.is_active and any(t.lower() == tl and c.lower() == cl for t, c in ends) \
+                    and all(dtype(t, c) == "datetime" for t, c in ends):
+                return True
+        return False
+
+    names = {mt.group(1).upper() for mt in TI_RE.finditer(strip_dax(expr, keep_names=True))}
+    if not names:
+        return False
+    for name in names:
+        idx = 1 if name.startswith(("TOTAL", "OPENINGBALANCE", "CLOSINGBALANCE")) else 0
+        for args in find_calls(expr, name):
+            col = COLUMN_REF_RE.match(args[idx].strip()) if len(args) > idx else None
+            if col is None or not on_date_relationship(unquote_name(col.group(1)), col.group(2).strip()):
+                return False
+    return True
+
+
 def _check_unused(ctx: Context) -> Iterable[Dict[str, Any]]:
     m, r = ctx.model, ctx.report
     if m is None or r is None or ctx.project.thin or r.format != "PBIR":
@@ -494,19 +592,28 @@ def _check_unused(ctx: Context) -> Iterable[Dict[str, Any]]:
     for rel in m.relationships:
         rel_cols.add((rel.from_table.lower(), rel.from_column.lower()))
         rel_cols.add((rel.to_table.lower(), rel.to_column.lower()))
+    whole = _whole_table_uses(m)
+    for t in m.tables.values():
+        for c in t.columns.values():
+            src = SOURCE_COLUMN_REF_RE.match(c.source_column or "")
+            if src:
+                used.add((unquote_name(src.group(1)).lower(), src.group(2).strip().lower()))
     for t in sorted(m.tables.values(), key=lambda x: x.name.lower()):
         if t.is_auto_date or t.is_calculation_group:
             continue
         tl = t.name.lower()
         sort_targets = {c.sort_by.lower() for c in t.columns.values() if c.sort_by}
+        sort_targets |= {g.lower() for c in t.columns.values() for g in c.group_by}  # field parameter Fields column
         level_cols = {lv.lower() for levels in t.hierarchies.values() for lv in levels}
         unused = []
         dummy_measure_table = len(t.measures) > 0 and len(t.columns) == 1
+        copied_whole = tl in whole  # a calculated table copies it: every column is used
         for c in t.columns.values():
-            if dummy_measure_table:
+            if dummy_measure_table or copied_whole:
                 continue
             cl = c.name.lower()
-            if (tl, cl) in used or cl in names or (tl, cl) in rel_cols or cl in sort_targets or cl in level_cols or c.is_key:
+            if (tl, cl) in used or cl in names or (tl, cl) in rel_cols or cl in sort_targets or cl in level_cols or c.is_key \
+                    or c.is_parameter:
                 continue
             if cl.startswith("rownumber-"):
                 continue
@@ -524,6 +631,19 @@ def _check_unused(ctx: Context) -> Iterable[Dict[str, Any]]:
             yield ctx.finding("MOD-10", f"Table '{t.name}' has {len(unused)} object(s) not referenced by {scope}, any DAX, relationship, sort-by or hierarchy: {label}.{note}",
                               [ev(o.file, o.line, detail=f"{k} {o.name}") for k, o in unused],
                               confidence="medium", count=len(unused))
+
+
+SOURCE_COLUMN_REF_RE = re.compile(r"^\s*('(?:[^']|'')+'|[^'\[\]]+?)\s*\[([^\]]+)\]\s*$")
+
+
+def _whole_table_uses(m: SemanticModel) -> Set[str]:
+    """Tables named alone by a whole DAX expression (``source = 'Date Template'``)."""
+    out: Set[str] = set()
+    for (_k, _f, _l, text) in m.dax_texts():
+        bare = unquote_name(strip_dax(text or "", keep_names=True).strip())
+        if bare and bare.lower() in m.tables:
+            out.add(bare.lower())
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -562,6 +682,11 @@ def check_dax(ctx: Context) -> Iterable[Dict[str, Any]]:
         if no_desc:
             yield ctx.finding("GOV-01", f"Table '{t.name}' has {len(no_desc)} visible measure(s) without a description: {', '.join(x.name for x in no_desc[:10])}{'...' if len(no_desc) > 10 else ''}.",
                               [ev(x.file, x.line, detail=x.name) for x in no_desc], count=len(no_desc))
+
+    for (kind, name, file, line, text) in m.extra_dax():
+        if has_unsafe_division(text or ""):
+            yield ctx.finding("DAX-01", f"The {kind} expression of '{name}' uses the / operator with a non-constant denominator.",
+                              [ev(file, line, detail=f"{kind} {name}")], confidence="medium")
 
     for (kind, file, line, text) in m.dax_texts():
         clean = strip_dax(text or "", keep_names=True)
@@ -777,6 +902,17 @@ def check_windows(ctx: Context) -> Iterable[Dict[str, Any]]:
                                   confidence="low" if how != "direct" else "medium")
 
 
+def _is_back_action(v: Visual) -> bool:
+    """A button, shape or image whose action (visualLink) is Back."""
+    if v.visual_type == "actionButton" and "'Back'" in v.file.text:
+        return True
+    for entry in (v.visual.get("visualContainerObjects") or {}).get("visualLink", []) or []:
+        props = (entry or {}).get("properties") or {}
+        if decode_value(props.get("type")) == "Back" and _bool_lit(props, "show") is not False:
+            return True
+    return False
+
+
 def check_pages(ctx: Context) -> Iterable[Dict[str, Any]]:
     r = ctx.report
     if r is None or r.format != "PBIR":
@@ -800,7 +936,7 @@ def check_pages(ctx: Context) -> Iterable[Dict[str, Any]]:
                 yield ctx.finding("ST-05", f"Page '{page.display_name}' is hidden, is not a drillthrough or tooltip page, and no button or bookmark references it.",
                                   [ev(pf.rel, pf.line_at(("visibility",)), "$.visibility")])
         if page.is_drillthrough:
-            has_back = any(v.visual_type == "actionButton" and "'Back'" in v.file.text for v in page.visuals)
+            has_back = any(_is_back_action(v) for v in page.visuals)
             if not has_back:
                 yield ctx.finding("IN-07", f"Drillthrough page '{page.display_name}' has no Back button.",
                                   [ev(pf.rel, pf.line_at(("pageBinding",)), "$.pageBinding")])
@@ -828,7 +964,7 @@ def check_pages(ctx: Context) -> Iterable[Dict[str, Any]]:
         if len(tabbed) >= 4:
             by_tab = sorted(tabbed, key=lambda v: v.position.get("tabOrder"))
             band = max(1.0, float(o.tab_row_band))
-            by_read = sorted(tabbed, key=lambda v: (round(float(v.position.get("y", 0)) / band), float(v.position.get("x", 0))))
+            by_read = sorted(tabbed, key=lambda v: (round(v.page_xy[1] / band), v.page_xy[0]))
             rank = {id(v): i for i, v in enumerate(by_read)}
             seq = [rank[id(v)] for v in by_tab]
             inv = sum(1 for i in range(len(seq)) for j in range(i + 1, len(seq)) if seq[i] > seq[j])
@@ -837,7 +973,7 @@ def check_pages(ctx: Context) -> Iterable[Dict[str, Any]]:
                 first = by_tab[0]
                 yield ctx.finding("A11Y-04", f"Page '{page.display_name}': tab order disagrees with reading order for {inv / pairs:.0%} of visual pairs (tolerance {o.tab_inversion_ratio:.0%}, row band {band:g}px).",
                                   [ev(first.file.rel, first.file.line_at(("position", "tabOrder")), "$.position.tabOrder",
-                                      detail=f"first in tab order: {first.visual_type} at x={float(first.position.get('x', 0)):.0f}, y={float(first.position.get('y', 0)):.0f}")],
+                                      detail=f"first in tab order: {first.visual_type} at x={first.page_xy[0]:.0f}, y={first.page_xy[1]:.0f}")],
                                   confidence="medium")
 
         yield from _hex_literals(ctx, page)
@@ -984,10 +1120,17 @@ def _page_backgrounds(theme: Theme, page: Page) -> List[str]:
     return out
 
 
+def _page_has_image(page: Page) -> bool:
+    """A page background or outspace (wallpaper) image makes the colour behind text unknowable."""
+    objects = page.data.get("objects") or {}
+    return any("image" in _first_props(objects, obj) for obj in ("background", "outspace"))
+
+
 def _rect(v: Visual) -> Tuple[float, float, float, float, float]:
     p = v.position
     try:
-        return (float(p.get("x", 0)), float(p.get("y", 0)), float(p.get("width", 0)), float(p.get("height", 0)), float(p.get("z", 0)))
+        x, y = v.page_xy
+        return (x, y, float(p.get("width", 0)), float(p.get("height", 0)), float(p.get("z", 0)))
     except (TypeError, ValueError):
         return (0.0, 0.0, 0.0, 0.0, 0.0)
 
@@ -1037,7 +1180,7 @@ def _visual_backgrounds(theme: Theme, page: Page, v: Visual) -> Optional[List[st
         transp = _num_lit(style, "transparency") or 0.0
     if show is True and transp < 50:
         return [colour]
-    if _layered(v, page, theme):
+    if _layered(v, page, theme) or _page_has_image(page):
         return None
     under = _page_backgrounds(theme, page)
     return under if show is False or transp >= 50 else sorted(set(under) | {colour})
@@ -1068,8 +1211,42 @@ def _fill_backgrounds(theme: Theme, v: Visual, selector: Optional[str]) -> Optio
     return [colour] if colour else []
 
 
-def _text_colours(v: Visual) -> Iterable[Tuple[PathT, Any, Optional[Any], bool, Optional[str]]]:
-    """Yield (path, colour value, own background value or None, is_large_text, state selector)."""
+def _card_fill_backgrounds(theme: Theme, v: Visual, selector: Dict[str, Any]) -> Optional[List[str]]:
+    """New card visual (cardVisual): text sits on the tile fill (``fillCustom``), per field or default."""
+    entries = (v.visual.get("objects") or {}).get("fillCustom") or []
+    if v.visual_type != "cardVisual" or not isinstance(entries, list):
+        return None
+    by_key: Dict[Optional[str], Any] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        props = entry.get("properties") or {}
+        sel = entry.get("selector") if isinstance(entry.get("selector"), dict) else {}
+        key = sel.get("metadata")
+        if _bool_lit(props, "show") is False and key is None:
+            return None
+        if "fillColor" in props:
+            by_key[key] = props["fillColor"]
+    if not by_key:
+        return None
+    meta = selector.get("metadata")
+    if meta in by_key:
+        raws = [by_key[meta]]
+    elif None in by_key:
+        raws = [by_key[None]]
+    else:
+        raws = list(by_key.values())
+    out = []
+    for raw in raws:
+        colour, _how = theme.resolve(raw)
+        if colour is None:
+            return []  # bound to an expression: not assessable offline
+        out.append(colour)
+    return out
+
+
+def _text_colours(v: Visual) -> Iterable[Tuple[PathT, Any, Optional[Any], bool, Dict[str, Any]]]:
+    """Yield (path, colour value, own background value or None, is_large_text, selector)."""
     for ckey in ("visualContainerObjects", "objects"):
         cont = v.visual.get(ckey) or {}
         if not isinstance(cont, dict):
@@ -1092,11 +1269,11 @@ def _text_colours(v: Visual) -> Iterable[Tuple[PathT, Any, Optional[Any], bool, 
                             own_bg = props.get("backgroundColor")  # data-label background box
                         else:
                             own_bg = props.get("background")
-                        yield ("visual", ckey, obj, i, "properties", prop), val, own_bg, large, sel.get("id")
+                        yield ("visual", ckey, obj, i, "properties", prop), val, own_bg, large, sel
     # text boxes: paragraphs[].textRuns[].textStyle.color (plain "#RRGGBB" strings)
     for path, val in walk(v.visual.get("objects") or {}, ("visual", "objects")):
         if len(path) >= 2 and path[-1] == "color" and path[-2] == "textStyle" and isinstance(val, str):
-            yield path, val, None, False, None
+            yield path, val, None, False, {}
 
 
 def check_colour(ctx: Context) -> Iterable[Dict[str, Any]]:
@@ -1120,7 +1297,9 @@ def check_colour(ctx: Context) -> Iterable[Dict[str, Any]]:
                 fg, how = theme.resolve(val)
                 if fg is None:
                     continue  # bound to an expression: not assessable offline
-                fill = _fill_backgrounds(theme, v, selector)
+                fill = _fill_backgrounds(theme, v, selector.get("id"))
+                if fill is None:
+                    fill = _card_fill_backgrounds(theme, v, selector)
                 if own_bg is not None:
                     b, bhow = theme.resolve(own_bg)
                     cands = [b] if b else None

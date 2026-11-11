@@ -4,9 +4,11 @@ Score formula (documented in VALIDATION-AND-REPORTING.md and the report itself):
 
     pillar score = max(0, 100 - sum(weight[severity] for each counted finding in the pillar))
     weights: Critical 25, High 10, Medium 4, Low 1, Info 0
-    overall score = mean of the nine core pillar scores (rounded)
+    overall score = mean of the assessed core pillar scores (rounded)
 
-A finding counts once, however many locations it aggregates. Findings marked
+A pillar is not assessed (score null) when the files it needs are missing or in a
+format the scanner does not read: report pillars when the report is not PBIR,
+model and DAX when the model is not TMDL. A finding counts once, however many locations it aggregates. Findings marked
 ``status: false_positive`` are not counted. Scores rank where to look first; they
 are not a certification and are not comparable across projects of very different
 size.
@@ -14,7 +16,7 @@ size.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List, Optional, Set
 
 from .catalog import BY_ID, PILLARS, SEVERITIES
 
@@ -30,29 +32,59 @@ SARIF_SECURITY = {"Critical": "9.0", "High": "7.0", "Medium": "5.0", "Low": "3.0
 INFO_URI = "https://github.com/alexguardiola/pbip-audit-skill"
 
 
+REPORT_PILLARS = ("performance", "visual-design", "storytelling", "interaction", "accessibility", "mobile")
+MODEL_PILLARS = ("model", "dax")
+
+
+def assessed_pillars(report_format: str, model_format: str) -> Set[str]:
+    """Core pillars the scanner could assess from the files present."""
+    out = set(PILLARS)
+    if report_format != "PBIR":
+        out -= set(REPORT_PILLARS)
+    if model_format != "TMDL":
+        out -= set(MODEL_PILLARS)
+    return out
+
+
 def counted(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [f for f in findings if f.get("status") != "false_positive"]
 
 
-def scores(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
+def scores(findings: List[Dict[str, Any]], assessed: Optional[Iterable[str]] = None) -> Dict[str, Any]:
+    """Pillar and overall scores. ``assessed``: core pillars that could be assessed (default: all)."""
+    ok = set(PILLARS) if assessed is None else set(assessed)
     per: Dict[str, Dict[str, Any]] = {}
     pillars = list(PILLARS) + sorted({f["pillar"] for f in findings} - set(PILLARS))
     for p in pillars:
         fs = [f for f in counted(findings) if f["pillar"] == p]
         by_sev = {s: sum(1 for f in fs if f["severity"] == s) for s in SEVERITIES}
         penalty = sum(SEVERITY_WEIGHTS[s] * n for s, n in by_sev.items())
-        per[p] = {"score": max(0, 100 - penalty), "penalty": penalty, "by_severity": by_sev}
-    core = [per[p]["score"] for p in PILLARS]
+        is_ok = p in ok or p not in PILLARS
+        per[p] = {"score": max(0, 100 - penalty) if is_ok else None, "penalty": penalty, "by_severity": by_sev,
+                  "assessed": is_ok}
+    core = [per[p]["score"] for p in PILLARS if per[p]["assessed"]]
+    skipped = [p for p in PILLARS if not per[p]["assessed"]]
+    if skipped:
+        overall_txt = (f"overall = mean of the {len(core)} assessed core pillars; not assessed (files missing or not "
+                       f"PBIR/TMDL): {', '.join(skipped)}")
+    else:
+        overall_txt = "overall = mean of the nine core pillars"
     return {
-        "formula": "pillar = max(0, 100 - sum(weights[severity])) per counted finding; overall = mean of the nine core pillars",
+        "formula": "pillar = max(0, 100 - sum(weights[severity])) per counted finding; " + overall_txt,
         "weights": dict(SEVERITY_WEIGHTS),
-        "overall": round(sum(core) / len(core)),
+        "overall": round(sum(core) / len(core)) if core else None,
         "pillars": per,
     }
 
 
-def _band(score: int) -> str:
+def _band(score: Optional[int]) -> str:
+    if score is None:
+        return "not assessed"
     return "good" if score >= 90 else ("fair" if score >= 70 else "needs work")
+
+
+def _score_text(score: Optional[int]) -> str:
+    return "not assessed" if score is None else str(score)
 
 
 def _loc(e: Dict[str, Any]) -> str:
@@ -64,7 +96,7 @@ def to_markdown(result: Dict[str, Any], max_evidence: int = 10) -> str:
     findings = result["findings"]
     sc = result.get("scores") or scores(findings)
     out: List[str] = []
-    out.append(f"# PBIP audit: {t['pbip']}")
+    out.append(f"# PBIP audit: {t['pbip'] or t.get('report_path') or t.get('model_path')}")
     out.append("")
     out.append(f"Scanner {result['tool']['version']} at {result['generated_at']}. Report format: {t['report_format']}; "
                f"model format: {t['model_format']}; thin report: {t['thin_report']}.")
@@ -87,9 +119,11 @@ def to_markdown(result: Dict[str, Any], max_evidence: int = 10) -> str:
     else:
         worst = next(s for s in SEVERITIES if by_sev[s])
         top = [f for f in c if f["severity"] == worst][:3]
-        weakest = sorted(PILLARS, key=lambda p: sc["pillars"][p]["score"])[:2]
+        weakest = sorted((p for p in PILLARS if sc["pillars"][p].get("score") is not None),
+                         key=lambda p: sc["pillars"][p]["score"])[:2]
+        overall = f"Overall score {sc['overall']}/100 ({_band(sc['overall'])})" if sc["overall"] is not None else "Overall score not assessed"
         out.append(f"{len(c)} deterministic finding(s): " + ", ".join(f"{n} {s}" for s, n in by_sev.items() if n) + ". "
-                   f"Overall score {sc['overall']}/100 ({_band(sc['overall'])}). "
+                   f"{overall}. "
                    f"Weakest pillars: " + ", ".join(f"{PILLAR_LABELS[p]} ({sc['pillars'][p]['score']})" for p in weakest) + ".")
         out.append("")
         out.append(f"Fix first ({worst}):")
@@ -107,13 +141,19 @@ def to_markdown(result: Dict[str, Any], max_evidence: int = 10) -> str:
     out.append("|---|---|---|---|---|---|---|")
     for p, row in sc["pillars"].items():
         b = row["by_severity"]
-        out.append(f"| {PILLAR_LABELS.get(p, p)} | {row['score']} | " + " | ".join(str(b[s]) for s in SEVERITIES) + " |")
-    out.append(f"| **Overall** | **{sc['overall']}** | " + " | ".join(str(by_sev[s]) for s in SEVERITIES) + " |")
+        out.append(f"| {PILLAR_LABELS.get(p, p)} | {_score_text(row.get('score'))} | " + " | ".join(str(b[s]) for s in SEVERITIES) + " |")
+    out.append(f"| **Overall** | **{_score_text(sc['overall'])}** | " + " | ".join(str(by_sev[s]) for s in SEVERITIES) + " |")
     out.append("")
     w = sc["weights"]
+    skipped = [PILLAR_LABELS.get(p, p) for p in PILLARS if p in sc["pillars"] and sc["pillars"][p].get("score") is None]
+    if skipped:
+        overall_txt = (f"overall = mean of the {len(PILLARS) - len(skipped)} assessed pillars; not assessed because their files are "
+                       f"missing or not in PBIR/TMDL format: {', '.join(skipped)}")
+    else:
+        overall_txt = "overall = mean of the nine pillars"
     out.append(f"Formula: pillar score = max(0, 100 - sum of severity weights of its findings); weights Critical {w['Critical']}, "
                f"High {w['High']}, Medium {w['Medium']}, Low {w['Low']}, Info {w['Info']}; a finding counts once however many "
-               "locations it lists; false positives are excluded; overall = mean of the nine pillars. Use it to rank work, not to certify.")
+               f"locations it lists; false positives are excluded; {overall_txt}. Use it to rank work, not to certify.")
     out.append("")
 
     # findings, by severity then pillar

@@ -5,9 +5,10 @@ Usage:
     python validate_findings.py findings.json [--schema ../report-schema.json]
 
 Implements the JSON Schema subset the schema uses: type (incl. type lists),
-required, properties, additionalProperties (bool), enum, pattern, minLength,
+required, properties, additionalProperties (bool or schema), enum, pattern, minLength,
 minimum, minItems, items, $ref to #/definitions/... . Also checks that
-summary counts agree with the findings list and that finding ids are unique.
+summary counts agree with the findings list, that finding ids are unique and
+that a pillar scored as not assessed has no score (and an assessed one has one).
 
 Exit code 0 when valid, 1 when invalid, 2 on usage/IO errors.
 """
@@ -67,10 +68,13 @@ def validate(instance: Any, schema: Dict[str, Any], root: Dict[str, Any], path: 
                 errors.append(f"{path}: missing required property '{key}'")
         props = schema.get("properties", {})
         for key, value in instance.items():
+            extra = schema.get("additionalProperties")
             if key in props:
                 errors.extend(validate(value, props[key], root, f"{path}.{key}"))
-            elif schema.get("additionalProperties") is False:
+            elif extra is False:
                 errors.append(f"{path}: unexpected property '{key}'")
+            elif isinstance(extra, dict):
+                errors.extend(validate(value, extra, root, f"{path}.{key}"))
     if isinstance(instance, list):
         if "minItems" in schema and len(instance) < schema["minItems"]:
             errors.append(f"{path}: fewer than {schema['minItems']} items")
@@ -102,6 +106,15 @@ def semantic_checks(doc: Dict[str, Any]) -> List[str]:
             actual = sum(1 for f in findings if isinstance(f, dict) and f.get("severity") == sev)
             if n != actual:
                 errors.append(f"$.summary.by_severity.{sev}: {n} != {actual}")
+    pillars = (doc.get("scores") or {}).get("pillars") if isinstance(doc.get("scores"), dict) else None
+    if isinstance(pillars, dict):
+        for name, row in sorted(pillars.items()):
+            if not isinstance(row, dict) or "assessed" not in row:
+                continue
+            if row["assessed"] is False and row.get("score") is not None:
+                errors.append(f"$.scores.pillars.{name}: not assessed but scored {row.get('score')}")
+            if row["assessed"] is True and row.get("score") is None:
+                errors.append(f"$.scores.pillars.{name}: assessed but score is null")
     return errors
 
 

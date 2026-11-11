@@ -46,10 +46,10 @@ table Orders
 	measure 'Orphan Measure' = 1
 		formatString: 0
 
-	column OrderDate
-		dataType: dateTime
+	column OrderDateKey
+		dataType: int64
 		summarizeBy: none
-		sourceColumn: OrderDate
+		sourceColumn: OrderDateKey
 
 	column ShipDate
 		dataType: dateTime
