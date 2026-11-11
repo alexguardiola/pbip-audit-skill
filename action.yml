@@ -7,7 +7,7 @@ branding:
 
 inputs:
   path:
-    description: Path to the .pbip file, or a folder that contains exactly one .pbip.
+    description: Path to the .pbip file, or a folder with exactly one .pbip (or one Fabric *.Report / *.SemanticModel item).
     required: true
   fail-on:
     description: Fail the step when a finding at or above this severity exists (Critical, High, Medium, Low, Info). Empty never fails.

@@ -37,7 +37,7 @@ cd pbip-audit-skill
 python skills/pbip-audit/scripts/scan.py skills/pbip-audit/scripts/tests/fixtures/defects --format md --out report.md
 ```
 
-`report.md` starts with an executive summary (`51 deterministic finding(s): 3 Critical, 10 High, ...`), a score per pillar and then every finding with its evidence. The same output is committed in [examples/defects-report.md](examples/defects-report.md) and [examples/defects-report.sarif](examples/defects-report.sarif). Point it at your own `.pbip` file or project folder next.
+`report.md` starts with an executive summary (`51 deterministic finding(s): 3 Critical, 10 High, ...`), a score per pillar and then every finding with its evidence. The same output is committed in [examples/defects-report.md](examples/defects-report.md) and [examples/defects-report.sarif](examples/defects-report.sarif). Point it at your own `.pbip` file or project folder next. Folders synced by Fabric Git integration, which have no `.pbip` file, work too: pass the folder that holds the `*.Report` or `*.SemanticModel` item.
 
 ## Install
 
