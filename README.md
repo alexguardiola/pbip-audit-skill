@@ -97,11 +97,11 @@ jobs:
       - uses: actions/checkout@v7
       - uses: alexguardiola/pbip-audit-skill@v0.3.0
         with:
-          path: reports/Sales        # a .pbip file, or a folder with one .pbip
+          path: reports/Sales        # a .pbip file, a folder with one .pbip, or a Fabric Git item folder
           fail-on: High              # optional: fail the job on High or Critical findings
 ```
 
-The action writes the Markdown report to the job summary, uploads SARIF so findings appear as code scanning alerts on the right line, and exposes `findings` and `sarif-file` outputs. Inputs: `path`, `fail-on`, `config`, `args` (extra scanner options), `upload-sarif` (default `true`), `sarif-file`, `category`. Code scanning on private repositories needs GitHub Advanced Security; set `upload-sarif: "false"` without it.
+The action writes the Markdown report to the job summary, uploads SARIF so findings appear as code scanning alerts on the right line, and exposes `findings` and `sarif-file` outputs. Inputs: `path`, `fail-on`, `config`, `args` (extra scanner options), `upload-sarif` (default `true`), `sarif-file`, `category`. Code scanning on private repositories needs GitHub Advanced Security; set `upload-sarif: "false"` without it. Pull requests from forks get a read-only token, so the upload fails there; use `upload-sarif: ${{ github.event.pull_request.head.repo.full_name == github.repository }}` to upload only for branches of your own repository.
 
 ### pre-commit
 

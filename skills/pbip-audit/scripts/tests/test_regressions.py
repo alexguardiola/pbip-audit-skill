@@ -90,6 +90,21 @@ class RealWorldRegressionTests(unittest.TestCase):
     def test_s10_no_mod04_over_a_datetime_relationship(self):
         self.assertEqual(findings(self.result, "MOD-04"), [])
 
+    def test_s10_fact_side_date_column_still_fires_mod04(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            proj = Path(tmp) / "realworld"
+            shutil.copytree(str(FIX / "realworld"), str(proj))
+            sales = proj / "Regressions.SemanticModel" / "definition" / "tables" / "Sales.tmdl"
+            text = sales.read_text(encoding="utf-8").replace(
+                "\t/// Revenue.\n",
+                "\tmeasure 'Revenue YTD' = CALCULATE([Revenue], DATESYTD(Sales[SaleDate]))\n\t\tformatString: #,0\n\n\t/// Revenue.\n", 1)
+            sales.write_text(text, encoding="utf-8")
+            result = scan.build_result(proj, OPTS)
+        hit = findings(result, "MOD-04")
+        self.assertEqual(len(hit), 1)
+        self.assertIn("Revenue YTD", json.dumps(hit[0]))
+
     # S11: BIND-01 / BIND-03 severity by location
     def test_s11_stale_only_references_are_medium(self):
         for prop, where in (("Old Sort Column", "sort definition"), ("Old Width Column", "formatting selector"),
@@ -170,6 +185,7 @@ class NotAssessedScoreTests(unittest.TestCase):
         md = scan.to_markdown(res)
         self.assertIn("| Accessibility | not assessed |", md)
         self.assertIn("mean of the 1 assessed pillars", md)
+        self.assertIn("(1 of 9 pillars assessed)", md.split("## Score per pillar")[0])
 
     def test_s13_validator_rejects_score_on_not_assessed_pillar(self):
         res = scan.build_result(FIX / "tmsl", OPTS)

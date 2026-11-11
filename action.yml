@@ -55,7 +55,11 @@ runs:
         SARIF: ${{ inputs.sarif-file }}
       run: |
         set -uo pipefail
-        PY="$(command -v python3 || command -v python)"
+        PY=""
+        for c in python3 python; do
+          if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(sys.version_info < (3, 8))' >/dev/null 2>&1; then PY="$(command -v "$c")"; break; fi
+        done
+        if [ -z "$PY" ]; then echo "::error::pbip-audit needs Python 3.8 or later on PATH (add actions/setup-python)."; exit 1; fi
         SCAN="$GITHUB_ACTION_PATH/skills/pbip-audit/scripts/scan.py"
         opts=()
         if [ -n "$CONFIG" ]; then opts+=(--config "$CONFIG"); fi
@@ -88,7 +92,11 @@ runs:
         FAIL_ON: ${{ inputs.fail-on }}
       run: |
         set -uo pipefail
-        PY="$(command -v python3 || command -v python)"
+        PY=""
+        for c in python3 python; do
+          if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(sys.version_info < (3, 8))' >/dev/null 2>&1; then PY="$(command -v "$c")"; break; fi
+        done
+        if [ -z "$PY" ]; then echo "::error::pbip-audit needs Python 3.8 or later on PATH (add actions/setup-python)."; exit 1; fi
         SCAN="$GITHUB_ACTION_PATH/skills/pbip-audit/scripts/scan.py"
         opts=()
         if [ -n "$CONFIG" ]; then opts+=(--config "$CONFIG"); fi

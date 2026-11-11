@@ -122,6 +122,9 @@ def to_markdown(result: Dict[str, Any], max_evidence: int = 10) -> str:
         weakest = sorted((p for p in PILLARS if sc["pillars"][p].get("score") is not None),
                          key=lambda p: sc["pillars"][p]["score"])[:2]
         overall = f"Overall score {sc['overall']}/100 ({_band(sc['overall'])})" if sc["overall"] is not None else "Overall score not assessed"
+        n_assessed = sum(1 for p in PILLARS if sc["pillars"][p].get("assessed", True))
+        if n_assessed < len(PILLARS):
+            overall += f" ({n_assessed} of {len(PILLARS)} pillars assessed)"
         out.append(f"{len(c)} deterministic finding(s): " + ", ".join(f"{n} {s}" for s, n in by_sev.items() if n) + ". "
                    f"{overall}. "
                    f"Weakest pillars: " + ", ".join(f"{PILLAR_LABELS[p]} ({sc['pillars'][p]['score']})" for p in weakest) + ".")

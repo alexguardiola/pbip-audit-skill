@@ -560,10 +560,12 @@ def _ti_over_date_relationship(m: SemanticModel, expr: str) -> bool:
         return (c.data_type or "").lower() if c else ""
 
     def on_date_relationship(table: str, column: str) -> bool:
+        # Only the one side of the relationship counts: a fact table's date column is not contiguous.
         tl, cl = table.lower(), column.lower()
         for r in m.relationships:
             ends = ((r.from_table, r.from_column), (r.to_table, r.to_column))
-            if r.is_active and any(t.lower() == tl and c.lower() == cl for t, c in ends) \
+            if r.is_active and r.to_table.lower() == tl and r.to_column.lower() == cl \
+                    and (r.to_cardinality or "one").lower() == "one" \
                     and all(dtype(t, c) == "datetime" for t, c in ends):
                 return True
         return False

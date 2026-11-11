@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-11
+
+First public release.
+
 ### Added
 
 - **Claude Code plugin.** `/plugin marketplace add alexguardiola/pbip-audit-skill` then `/plugin install pbip-audit@pbip-audit-skill` installs the skill; manifests in `.claude-plugin/`.
@@ -37,6 +41,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - `definition.pbir` files declaring `.../item/report/definitionProperties/<version>/schema.json` were always listed under GOV-18: the URL has no `/definition/` segment. `--validate-schemas` now recognises it and the cache holds `definitionProperties` 1.0.0 and 2.0.0. `tools/refresh_schema_cache.py` fetches that kind and merges a partial `--kinds` run into the cache instead of dropping every other kind.
 - Schema cache refreshed: `page` 1.1.0-1.4.0, `report` 1.1.0-1.3.0 and 2.1.0, `visualContainer` 1.1.0-1.8.0 and more `visualContainerMobileState` versions are checked instead of being listed under GOV-18.
 - A SARIF `--path-prefix` written with Windows separators and a trailing backslash (`reports\Sales\`) produced URIs with a double slash.
+- MOD-04 accepts only the date column on the one side of a dateTime relationship; time intelligence over a fact table's date column is still reported.
+- The Markdown summary says how many pillars were assessed when some were not ("1 of 9 pillars assessed").
+- The GitHub Action looks for a working Python 3.8+ (`python3`, then `python`) and fails with a clear message otherwise; its CI job runs on Linux, Windows and macOS.
 
 ## 0.2.0 - 2026-11-10 (pre-release, not published)
 
@@ -71,3 +78,4 @@ All notable changes to this project are documented here. The format follows [Kee
 - First release: 74-rule catalog across nine pillars (42 deterministic, 27 judgement, 5 runtime), stdlib scanner for TMDL + PBIR with report-to-model binding index, findings schema and validator, pillar reference files generated from the catalog, synthetic fixtures and tests.
 
 [Unreleased]: https://github.com/alexguardiola/pbip-audit-skill/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/alexguardiola/pbip-audit-skill/releases/tag/v0.3.0
